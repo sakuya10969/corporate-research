@@ -6,7 +6,10 @@ export const companySearchSchema = v.object({
     v.nonEmpty("企業URLを入力してください"),
     v.trim(),
     v.url("有効なURLを入力してください"),
-    v.regex(/^https?:\/\//, "http:// または https:// で始まるURLを入力してください"),
+    v.regex(
+      /^https?:\/\//,
+      "http:// または https:// で始まるURLを入力してください",
+    ),
   ),
 });
 

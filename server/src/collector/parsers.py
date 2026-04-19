@@ -12,28 +12,69 @@ from bs4 import BeautifulSoup, Tag
 # ---------------------------------------------------------------------------
 _CATEGORY_KEYWORDS: dict[str, list[str]] = {
     "会社概要": [
-        "会社概要", "企業情報", "about", "company", "corporate",
-        "会社情報", "企業概要", "沿革", "history", "経営理念", "philosophy",
-        "代表挨拶", "役員", "組織",
+        "会社概要",
+        "企業情報",
+        "about",
+        "company",
+        "corporate",
+        "会社情報",
+        "企業概要",
+        "沿革",
+        "history",
+        "経営理念",
+        "philosophy",
+        "代表挨拶",
+        "役員",
+        "組織",
     ],
     "事業内容": [
-        "事業内容", "事業紹介", "business", "事業領域", "事業案内",
-        "ソリューション", "solution",
+        "事業内容",
+        "事業紹介",
+        "business",
+        "事業領域",
+        "事業案内",
+        "ソリューション",
+        "solution",
     ],
     "プロダクト・サービス": [
-        "製品", "サービス", "product", "service", "プロダクト",
-        "ラインナップ", "lineup",
+        "製品",
+        "サービス",
+        "product",
+        "service",
+        "プロダクト",
+        "ラインナップ",
+        "lineup",
     ],
     "IR・財務情報": [
-        "ir", "investor", "株主", "財務", "決算", "有価証券",
-        "annual report", "業績", "financial",
+        "ir",
+        "investor",
+        "株主",
+        "財務",
+        "決算",
+        "有価証券",
+        "annual report",
+        "業績",
+        "financial",
     ],
     "プレスリリース・ニュース": [
-        "ニュース", "news", "プレスリリース", "press", "お知らせ",
-        "topics", "新着情報", "release",
+        "ニュース",
+        "news",
+        "プレスリリース",
+        "press",
+        "お知らせ",
+        "topics",
+        "新着情報",
+        "release",
     ],
     "採用情報": [
-        "採用", "recruit", "career", "キャリア", "求人", "jobs", "新卒", "中途",
+        "採用",
+        "recruit",
+        "career",
+        "キャリア",
+        "求人",
+        "jobs",
+        "新卒",
+        "中途",
     ],
 }
 
@@ -77,7 +118,9 @@ def extract_body_text(html: str) -> str:
     soup = BeautifulSoup(html, "lxml")
 
     # 不要タグ除去
-    for tag in soup(["script", "style", "nav", "footer", "header", "aside", "noscript", "iframe"]):
+    for tag in soup(
+        ["script", "style", "nav", "footer", "header", "aside", "noscript", "iframe"]
+    ):
         tag.decompose()
 
     # main/article/section を優先的に探す
@@ -130,10 +173,7 @@ def _extract_table(table: Tag) -> str:
     """テーブルをMarkdown風テキストに変換する。"""
     rows: list[list[str]] = []
     for tr in table.find_all("tr"):
-        cells = [
-            td.get_text(strip=True)
-            for td in tr.find_all(["th", "td"])
-        ]
+        cells = [td.get_text(strip=True) for td in tr.find_all(["th", "td"])]
         if cells:
             rows.append(cells)
 
@@ -220,7 +260,9 @@ def extract_internal_links(html: str, base_url: str) -> list[str]:
             clean = clean[:-1]
 
         # 静的ファイルを除外
-        if re.search(r"\.(pdf|jpg|jpeg|png|gif|svg|css|js|zip|xlsx?)$", clean, re.IGNORECASE):
+        if re.search(
+            r"\.(pdf|jpg|jpeg|png|gif|svg|css|js|zip|xlsx?)$", clean, re.IGNORECASE
+        ):
             continue
 
         if clean not in seen:

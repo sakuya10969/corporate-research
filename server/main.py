@@ -28,7 +28,13 @@ async def log_requests(request: Request, call_next):
     logger.info("{} {}", request.method, request.url.path)
     response = await call_next(request)
     elapsed = (time.perf_counter() - start) * 1000
-    logger.info("{} {} → {} ({:.0f}ms)", request.method, request.url.path, response.status_code, elapsed)
+    logger.info(
+        "{} {} → {} ({:.0f}ms)",
+        request.method,
+        request.url.path,
+        response.status_code,
+        elapsed,
+    )
     return response
 
 
@@ -45,6 +51,8 @@ async def analysis_error_handler(_: Request, exc: AnalysisError) -> JSONResponse
 
 
 @app.exception_handler(ExternalServiceError)
-async def external_service_error_handler(_: Request, exc: ExternalServiceError) -> JSONResponse:
+async def external_service_error_handler(
+    _: Request, exc: ExternalServiceError
+) -> JSONResponse:
     logger.error("ExternalServiceError: {}", exc)
     return JSONResponse(status_code=503, content={"detail": str(exc)})

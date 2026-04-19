@@ -27,9 +27,24 @@ _MAX_PAGES = 15
 
 # サイトマップから優先的に取得するページのキーワード
 _SITEMAP_PRIORITY_KEYWORDS = [
-    "about", "company", "corporate", "business", "service", "product",
-    "ir", "investor", "news", "press", "recruit", "career",
-    "会社概要", "企業情報", "事業", "サービス", "製品", "ニュース",
+    "about",
+    "company",
+    "corporate",
+    "business",
+    "service",
+    "product",
+    "ir",
+    "investor",
+    "news",
+    "press",
+    "recruit",
+    "career",
+    "会社概要",
+    "企業情報",
+    "事業",
+    "サービス",
+    "製品",
+    "ニュース",
 ]
 
 
@@ -54,6 +69,7 @@ class CompanyInfo:
 # URL正規化
 # ---------------------------------------------------------------------------
 
+
 def _normalize_base_url(url: str) -> str:
     """入力URLからベースURL（スキーム + ドメイン）を正規化する。"""
     parsed = urlparse(url.strip())
@@ -67,6 +83,7 @@ def _normalize_base_url(url: str) -> str:
 # ---------------------------------------------------------------------------
 # サイトマップ探索
 # ---------------------------------------------------------------------------
+
 
 async def _fetch_sitemap_urls(client, base_url: str) -> list[str]:
     """サイトマップからURL一覧を取得する。"""
@@ -100,6 +117,7 @@ def _prioritize_sitemap_urls(urls: list[str]) -> list[str]:
 # ---------------------------------------------------------------------------
 # 内部リンク探索（サイトマップがない場合のフォールバック）
 # ---------------------------------------------------------------------------
+
 
 async def _crawl_internal_links(
     client,
@@ -136,6 +154,7 @@ async def _crawl_internal_links(
 # ページ取得・解析
 # ---------------------------------------------------------------------------
 
+
 async def _fetch_and_parse(client, url: str) -> SourceInfo | None:
     """単一ページを取得し、構造化テキストを抽出する。"""
     html = await fetch_page(client, url)
@@ -147,7 +166,9 @@ async def _fetch_and_parse(client, url: str) -> SourceInfo | None:
     meta = extract_meta(html)
 
     if not body or len(body.strip()) < 50:
-        logger.debug("本文が短すぎるためスキップ: {} ({}文字)", url, len(body) if body else 0)
+        logger.debug(
+            "本文が短すぎるためスキップ: {} ({}文字)", url, len(body) if body else 0
+        )
         return None
 
     # 前処理
@@ -169,6 +190,7 @@ async def _fetch_and_parse(client, url: str) -> SourceInfo | None:
 # ---------------------------------------------------------------------------
 # メインエントリポイント
 # ---------------------------------------------------------------------------
+
 
 async def collect_company_info(company_url: str) -> CompanyInfo:
     """企業URLを基点に情報を収集・構造化する。
@@ -203,7 +225,9 @@ async def collect_company_info(company_url: str) -> CompanyInfo:
                 logger.info("内部リンクから {} ページを対象に収集", len(target_urls))
 
             if not target_urls:
-                raise CollectionError(f"対象ページが見つかりませんでした: {company_url}")
+                raise CollectionError(
+                    f"対象ページが見つかりませんでした: {company_url}"
+                )
 
             # 並行取得
             tasks = [_fetch_and_parse(client, url) for url in target_urls]
@@ -234,6 +258,7 @@ async def collect_company_info(company_url: str) -> CompanyInfo:
 
             # LLM向けコンテキスト整形
             from src.shared.text import build_llm_context
+
             raw_content = build_llm_context(classified_sections)
 
             return CompanyInfo(

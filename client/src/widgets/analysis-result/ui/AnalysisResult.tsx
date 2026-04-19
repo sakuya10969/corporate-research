@@ -64,7 +64,13 @@ export function AnalysisResult({ data, isLoading, error }: Props) {
         <Text fw={700} size="xl" c="#1E293B">
           {displayName}
         </Text>
-        <Anchor href={data.company_url} target="_blank" rel="noopener noreferrer" size="sm" c="#2563EB">
+        <Anchor
+          href={data.company_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          size="sm"
+          c="#2563EB"
+        >
           {data.company_url}
         </Anchor>
       </Stack>
@@ -79,18 +85,30 @@ export function AnalysisResult({ data, isLoading, error }: Props) {
       )}
 
       {/* 企業プロフィール */}
-      {profile && (profile.name || profile.founded || profile.ceo || profile.location) && (
-        <CompanyCard title="企業プロフィール">
-          <Stack gap={4}>
-            {profile.name && <ProfileRow label="社名" value={profile.name} />}
-            {profile.founded && <ProfileRow label="設立" value={profile.founded} />}
-            {profile.ceo && <ProfileRow label="代表者" value={profile.ceo} />}
-            {profile.location && <ProfileRow label="所在地" value={profile.location} />}
-            {profile.employees && <ProfileRow label="従業員数" value={profile.employees} />}
-            {profile.capital && <ProfileRow label="資本金" value={profile.capital} />}
-          </Stack>
-        </CompanyCard>
-      )}
+      {profile &&
+        (profile.name ||
+          profile.founded ||
+          profile.ceo ||
+          profile.location) && (
+          <CompanyCard title="企業プロフィール">
+            <Stack gap={4}>
+              {profile.name && <ProfileRow label="社名" value={profile.name} />}
+              {profile.founded && (
+                <ProfileRow label="設立" value={profile.founded} />
+              )}
+              {profile.ceo && <ProfileRow label="代表者" value={profile.ceo} />}
+              {profile.location && (
+                <ProfileRow label="所在地" value={profile.location} />
+              )}
+              {profile.employees && (
+                <ProfileRow label="従業員数" value={profile.employees} />
+              )}
+              {profile.capital && (
+                <ProfileRow label="資本金" value={profile.capital} />
+              )}
+            </Stack>
+          </CompanyCard>
+        )}
 
       {/* 事業モデル */}
       {summary?.business_model && (
@@ -102,17 +120,18 @@ export function AnalysisResult({ data, isLoading, error }: Props) {
       )}
 
       {/* 事業領域 */}
-      {structured?.business_domains && structured.business_domains.length > 0 && (
-        <CompanyCard title="事業領域">
-          <Group gap="xs">
-            {structured.business_domains.map((domain) => (
-              <Badge key={domain} variant="light" color="blue" size="md">
-                {domain}
-              </Badge>
-            ))}
-          </Group>
-        </CompanyCard>
-      )}
+      {structured?.business_domains &&
+        structured.business_domains.length > 0 && (
+          <CompanyCard title="事業領域">
+            <Group gap="xs">
+              {structured.business_domains.map((domain) => (
+                <Badge key={domain} variant="light" color="blue" size="md">
+                  {domain}
+                </Badge>
+              ))}
+            </Group>
+          </CompanyCard>
+        )}
 
       {/* プロダクト・サービス */}
       {structured?.products && structured.products.length > 0 && (
@@ -129,20 +148,33 @@ export function AnalysisResult({ data, isLoading, error }: Props) {
 
       {/* 財務情報 */}
       {structured?.financials &&
-        (structured.financials.revenue || structured.financials.operating_income) && (
+        (structured.financials.revenue ||
+          structured.financials.operating_income) && (
           <CompanyCard title="財務情報">
             <Stack gap={4}>
               {structured.financials.revenue && (
-                <ProfileRow label="売上高" value={structured.financials.revenue} />
+                <ProfileRow
+                  label="売上高"
+                  value={structured.financials.revenue}
+                />
               )}
               {structured.financials.operating_income && (
-                <ProfileRow label="営業利益" value={structured.financials.operating_income} />
+                <ProfileRow
+                  label="営業利益"
+                  value={structured.financials.operating_income}
+                />
               )}
               {structured.financials.net_income && (
-                <ProfileRow label="純利益" value={structured.financials.net_income} />
+                <ProfileRow
+                  label="純利益"
+                  value={structured.financials.net_income}
+                />
               )}
               {structured.financials.growth_rate && (
-                <ProfileRow label="成長率" value={structured.financials.growth_rate} />
+                <ProfileRow
+                  label="成長率"
+                  value={structured.financials.growth_rate}
+                />
               )}
             </Stack>
           </CompanyCard>
@@ -153,16 +185,29 @@ export function AnalysisResult({ data, isLoading, error }: Props) {
         <CompanyCard title="SWOT分析">
           <Stack gap="sm">
             {summary.swot.strengths && summary.swot.strengths.length > 0 && (
-              <SwotSection label="強み (Strengths)" items={summary.swot.strengths} />
+              <SwotSection
+                label="強み (Strengths)"
+                items={summary.swot.strengths}
+              />
             )}
             {summary.swot.weaknesses && summary.swot.weaknesses.length > 0 && (
-              <SwotSection label="弱み (Weaknesses)" items={summary.swot.weaknesses} />
+              <SwotSection
+                label="弱み (Weaknesses)"
+                items={summary.swot.weaknesses}
+              />
             )}
-            {summary.swot.opportunities && summary.swot.opportunities.length > 0 && (
-              <SwotSection label="機会 (Opportunities)" items={summary.swot.opportunities} />
-            )}
+            {summary.swot.opportunities &&
+              summary.swot.opportunities.length > 0 && (
+                <SwotSection
+                  label="機会 (Opportunities)"
+                  items={summary.swot.opportunities}
+                />
+              )}
             {summary.swot.threats && summary.swot.threats.length > 0 && (
-              <SwotSection label="脅威 (Threats)" items={summary.swot.threats} />
+              <SwotSection
+                label="脅威 (Threats)"
+                items={summary.swot.threats}
+              />
             )}
           </Stack>
         </CompanyCard>
@@ -259,7 +304,11 @@ export function AnalysisResult({ data, isLoading, error }: Props) {
       {/* 差分レポート */}
       {data.diff_report && (
         <CompanyCard title="差分レポート">
-          <Text size="sm" c="#1E293B" style={{ lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+          <Text
+            size="sm"
+            c="#1E293B"
+            style={{ lineHeight: 1.7, whiteSpace: "pre-wrap" }}
+          >
             {data.diff_report}
           </Text>
         </CompanyCard>
@@ -269,7 +318,9 @@ export function AnalysisResult({ data, isLoading, error }: Props) {
       {data.markdown_page && (
         <CompanyCard title="Markdownレポート">
           <details>
-            <summary style={{ cursor: "pointer", color: "#64748B", fontSize: 14 }}>
+            <summary
+              style={{ cursor: "pointer", color: "#64748B", fontSize: 14 }}
+            >
               レポート全文を表示
             </summary>
             <Text

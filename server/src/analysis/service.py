@@ -55,13 +55,17 @@ async def analyze_company(request: AnalysisRequest) -> AnalysisResponse:
 
     # --- Stage 1: 構造化抽出 ---
     structured = await _extract_structured(
-        llm, request.company_url, company_info.raw_content,
+        llm,
+        request.company_url,
+        company_info.raw_content,
     )
     logger.info("構造化抽出完了: {}", request.company_url)
 
     # --- Stage 2: 要約生成 ---
     summary = await _generate_summary(
-        llm, request.company_url, structured,
+        llm,
+        request.company_url,
+        structured,
     )
     logger.info("要約生成完了: {}", request.company_url)
 
@@ -102,14 +106,18 @@ async def analyze_company(request: AnalysisRequest) -> AnalysisResponse:
     )
 
 
-async def _extract_structured(llm, company_url: str, raw_content: str) -> StructuredData:
+async def _extract_structured(
+    llm, company_url: str, raw_content: str
+) -> StructuredData:
     """Stage 1: 収集データから構造化情報を抽出する。"""
     try:
         chain = EXTRACTION_PROMPT | llm | StrOutputParser()
-        result_text = await chain.ainvoke({
-            "company_url": company_url,
-            "classified_content": raw_content,
-        })
+        result_text = await chain.ainvoke(
+            {
+                "company_url": company_url,
+                "classified_content": raw_content,
+            }
+        )
         logger.debug("構造化抽出 LLM応答 ({}文字)", len(result_text))
     except Exception as e:
         if "connection" in str(e).lower() or "timeout" in str(e).lower():
@@ -133,16 +141,20 @@ def _parse_structured(text: str) -> StructuredData:
     risks_data = parsed.get("risks", [])
 
     return StructuredData(
-        company_profile=CompanyProfile(**{
-            k: profile_data.get(k, "")
-            for k in ("name", "founded", "ceo", "location", "employees", "capital")
-        }),
+        company_profile=CompanyProfile(
+            **{
+                k: profile_data.get(k, "")
+                for k in ("name", "founded", "ceo", "location", "employees", "capital")
+            }
+        ),
         business_domains=parsed.get("business_domains", []),
         products=parsed.get("products", []),
-        financials=Financials(**{
-            k: financials_data.get(k, "")
-            for k in ("revenue", "operating_income", "net_income", "growth_rate")
-        }),
+        financials=Financials(
+            **{
+                k: financials_data.get(k, "")
+                for k in ("revenue", "operating_income", "net_income", "growth_rate")
+            }
+        ),
         news=[
             NewsItem(
                 title=n.get("title", ""),
@@ -163,16 +175,20 @@ def _parse_structured(text: str) -> StructuredData:
     )
 
 
-async def _generate_summary(llm, company_url: str, structured: StructuredData) -> SummaryData:
+async def _generate_summary(
+    llm, company_url: str, structured: StructuredData
+) -> SummaryData:
     """Stage 2: 構造化データから要約・SWOT・展望を生成する。"""
     structured_json = structured.model_dump_json(indent=2)
 
     try:
         chain = SUMMARY_PROMPT | llm | StrOutputParser()
-        result_text = await chain.ainvoke({
-            "company_url": company_url,
-            "structured_json": structured_json,
-        })
+        result_text = await chain.ainvoke(
+            {
+                "company_url": company_url,
+                "structured_json": structured_json,
+            }
+        )
         logger.debug("要約生成 LLM応答 ({}文字)", len(result_text))
     except Exception as e:
         if "connection" in str(e).lower() or "timeout" in str(e).lower():

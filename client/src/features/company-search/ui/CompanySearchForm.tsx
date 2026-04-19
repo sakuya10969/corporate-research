@@ -4,10 +4,7 @@ import { Button, Group, TextInput } from "@mantine/core";
 import { IconSearch } from "@tabler/icons-react";
 import * as v from "valibot";
 import { useState } from "react";
-import {
-  companySearchSchema,
-  type CompanySearchInput,
-} from "../model/schema";
+import { companySearchSchema, type CompanySearchInput } from "../model/schema";
 
 type Props = {
   onSubmit: (data: CompanySearchInput) => void;

@@ -99,12 +99,19 @@ def generate_markdown_report(
     lines.append("")
 
     # --- 企業プロフィール ---
-    if any(profile.get(k) for k in ("name", "founded", "ceo", "location", "employees", "capital")):
+    if any(
+        profile.get(k)
+        for k in ("name", "founded", "ceo", "location", "employees", "capital")
+    ):
         lines.append("## 企業プロフィール")
         lines.append("")
         _field_labels = [
-            ("name", "社名"), ("founded", "設立"), ("ceo", "代表者"),
-            ("location", "所在地"), ("employees", "従業員数"), ("capital", "資本金"),
+            ("name", "社名"),
+            ("founded", "設立"),
+            ("ceo", "代表者"),
+            ("location", "所在地"),
+            ("employees", "従業員数"),
+            ("capital", "資本金"),
         ]
         for key, label in _field_labels:
             val = profile.get(key, "")
@@ -132,12 +139,16 @@ def generate_markdown_report(
 
     # --- 財務情報 ---
     fin = structured.get("financials", {})
-    if any(fin.get(k) for k in ("revenue", "operating_income", "net_income", "growth_rate")):
+    if any(
+        fin.get(k) for k in ("revenue", "operating_income", "net_income", "growth_rate")
+    ):
         lines.append("## 財務情報")
         lines.append("")
         _fin_labels = [
-            ("revenue", "売上高"), ("operating_income", "営業利益"),
-            ("net_income", "純利益"), ("growth_rate", "成長率"),
+            ("revenue", "売上高"),
+            ("operating_income", "営業利益"),
+            ("net_income", "純利益"),
+            ("growth_rate", "成長率"),
         ]
         for key, label in _fin_labels:
             val = fin.get(key, "")
@@ -175,12 +186,16 @@ def generate_markdown_report(
 
     # --- SWOT ---
     swot = summary.get("swot", {})
-    if any(swot.get(k) for k in ("strengths", "weaknesses", "opportunities", "threats")):
+    if any(
+        swot.get(k) for k in ("strengths", "weaknesses", "opportunities", "threats")
+    ):
         lines.append("## SWOT分析")
         lines.append("")
         _swot_labels = [
-            ("strengths", "強み"), ("weaknesses", "弱み"),
-            ("opportunities", "機会"), ("threats", "脅威"),
+            ("strengths", "強み"),
+            ("weaknesses", "弱み"),
+            ("opportunities", "機会"),
+            ("threats", "脅威"),
         ]
         for key, label in _swot_labels:
             items = swot.get(key, [])
@@ -221,8 +236,14 @@ def generate_markdown_report(
         lines.append("## 参照ソース")
         lines.append("")
         for s in sources:
-            cat = f" [{s.get('category', '')}]" if s.get("category") and s["category"] != "その他" else ""
-            lines.append(f"- [{s.get('title', s.get('url', ''))}]({s.get('url', '')}){cat}")
+            cat = (
+                f" [{s.get('category', '')}]"
+                if s.get("category") and s["category"] != "その他"
+                else ""
+            )
+            lines.append(
+                f"- [{s.get('title', s.get('url', ''))}]({s.get('url', '')}){cat}"
+            )
         lines.append("")
 
     return "\n".join(lines)

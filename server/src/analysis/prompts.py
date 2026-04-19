@@ -11,75 +11,79 @@ from langchain_core.prompts import ChatPromptTemplate
 # Stage 1: 構造化抽出プロンプト
 # ---------------------------------------------------------------------------
 
-EXTRACTION_PROMPT = ChatPromptTemplate.from_messages([
-    (
-        "system",
-        "あなたは企業情報の構造化抽出の専門家です。\n"
-        "提供された企業サイトの収集情報を分析し、以下のJSON形式で構造化してください。\n"
-        "必ず有効なJSONのみを出力し、それ以外のテキストは含めないでください。\n"
-        "不明な項目は空文字列または空配列にしてください。推測ではなく、提供された情報に基づいて回答してください。\n\n"
-        "出力JSON形式:\n"
-        "{{\n"
-        '  "company_profile": {{\n'
-        '    "name": "正式社名",\n'
-        '    "founded": "設立年月",\n'
-        '    "ceo": "代表者名",\n'
-        '    "location": "本社所在地",\n'
-        '    "employees": "従業員数",\n'
-        '    "capital": "資本金"\n'
-        "  }},\n"
-        '  "business_domains": ["事業領域1", "事業領域2"],\n'
-        '  "products": ["主要製品・サービス1", "主要製品・サービス2"],\n'
-        '  "financials": {{\n'
-        '    "revenue": "売上高",\n'
-        '    "operating_income": "営業利益",\n'
-        '    "net_income": "純利益",\n'
-        '    "growth_rate": "成長率"\n'
-        "  }},\n"
-        '  "news": [\n'
-        '    {{"title": "ニュースタイトル", "date": "日付", "summary": "概要"}}\n'
-        "  ],\n"
-        '  "risks": [\n'
-        '    {{"category": "リスクカテゴリ", "description": "リスクの説明"}}\n'
-        "  ]\n"
-        "}}"
-    ),
-    (
-        "human",
-        "以下は企業サイト「{company_url}」から収集した情報です。カテゴリ別に整理されています。\n\n"
-        "{classified_content}"
-    ),
-])
+EXTRACTION_PROMPT = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            "あなたは企業情報の構造化抽出の専門家です。\n"
+            "提供された企業サイトの収集情報を分析し、以下のJSON形式で構造化してください。\n"
+            "必ず有効なJSONのみを出力し、それ以外のテキストは含めないでください。\n"
+            "不明な項目は空文字列または空配列にしてください。推測ではなく、提供された情報に基づいて回答してください。\n\n"
+            "出力JSON形式:\n"
+            "{{\n"
+            '  "company_profile": {{\n'
+            '    "name": "正式社名",\n'
+            '    "founded": "設立年月",\n'
+            '    "ceo": "代表者名",\n'
+            '    "location": "本社所在地",\n'
+            '    "employees": "従業員数",\n'
+            '    "capital": "資本金"\n'
+            "  }},\n"
+            '  "business_domains": ["事業領域1", "事業領域2"],\n'
+            '  "products": ["主要製品・サービス1", "主要製品・サービス2"],\n'
+            '  "financials": {{\n'
+            '    "revenue": "売上高",\n'
+            '    "operating_income": "営業利益",\n'
+            '    "net_income": "純利益",\n'
+            '    "growth_rate": "成長率"\n'
+            "  }},\n"
+            '  "news": [\n'
+            '    {{"title": "ニュースタイトル", "date": "日付", "summary": "概要"}}\n'
+            "  ],\n"
+            '  "risks": [\n'
+            '    {{"category": "リスクカテゴリ", "description": "リスクの説明"}}\n'
+            "  ]\n"
+            "}}",
+        ),
+        (
+            "human",
+            "以下は企業サイト「{company_url}」から収集した情報です。カテゴリ別に整理されています。\n\n"
+            "{classified_content}",
+        ),
+    ]
+)
 
 # ---------------------------------------------------------------------------
 # Stage 2: 要約・分析プロンプト
 # ---------------------------------------------------------------------------
 
-SUMMARY_PROMPT = ChatPromptTemplate.from_messages([
-    (
-        "system",
-        "あなたは企業分析の専門家です。\n"
-        "提供された企業の構造化データをもとに、以下のJSON形式で要約・分析を生成してください。\n"
-        "必ず有効なJSONのみを出力し、それ以外のテキストは含めないでください。\n"
-        "事実と推論を明確に分離し、推測には「推定」「可能性がある」等の表現を使ってください。\n"
-        "企業の評価・投資判断は行わないでください。\n\n"
-        "出力JSON形式:\n"
-        "{{\n"
-        '  "overview": "企業概要サマリー（300〜500字）",\n'
-        '  "business_model": "事業モデルの説明",\n'
-        '  "swot": {{\n'
-        '    "strengths": ["強み1", "強み2"],\n'
-        '    "weaknesses": ["弱み1", "弱み2"],\n'
-        '    "opportunities": ["機会1", "機会2"],\n'
-        '    "threats": ["脅威1", "脅威2"]\n'
-        "  }},\n"
-        '  "risks": ["リスク要因1", "リスク要因2"],\n'
-        '  "competitors": ["競合企業1", "競合企業2"],\n'
-        '  "outlook": "今後の展望（公開情報ベース）"\n'
-        "}}"
-    ),
-    (
-        "human",
-        "以下は企業サイト「{company_url}」の構造化データです。\n\n{structured_json}"
-    ),
-])
+SUMMARY_PROMPT = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            "あなたは企業分析の専門家です。\n"
+            "提供された企業の構造化データをもとに、以下のJSON形式で要約・分析を生成してください。\n"
+            "必ず有効なJSONのみを出力し、それ以外のテキストは含めないでください。\n"
+            "事実と推論を明確に分離し、推測には「推定」「可能性がある」等の表現を使ってください。\n"
+            "企業の評価・投資判断は行わないでください。\n\n"
+            "出力JSON形式:\n"
+            "{{\n"
+            '  "overview": "企業概要サマリー（300〜500字）",\n'
+            '  "business_model": "事業モデルの説明",\n'
+            '  "swot": {{\n'
+            '    "strengths": ["強み1", "強み2"],\n'
+            '    "weaknesses": ["弱み1", "弱み2"],\n'
+            '    "opportunities": ["機会1", "機会2"],\n'
+            '    "threats": ["脅威1", "脅威2"]\n'
+            "  }},\n"
+            '  "risks": ["リスク要因1", "リスク要因2"],\n'
+            '  "competitors": ["競合企業1", "競合企業2"],\n'
+            '  "outlook": "今後の展望（公開情報ベース）"\n'
+            "}}",
+        ),
+        (
+            "human",
+            "以下は企業サイト「{company_url}」の構造化データです。\n\n{structured_json}",
+        ),
+    ]
+)
