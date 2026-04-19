@@ -6,10 +6,9 @@
  */
 
 /**
- * 参照ソース
+ * リスク要因
  */
-export interface SourceInfo {
-  url: string;
-  title: string;
+export interface RiskItem {
   category?: string;
+  description: string;
 }

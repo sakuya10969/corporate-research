@@ -6,10 +6,10 @@
  */
 
 /**
- * 参照ソース
+ * 生テキストソース
  */
-export interface SourceInfo {
+export interface RawSource {
   url: string;
   title: string;
-  category?: string;
+  content: string;
 }

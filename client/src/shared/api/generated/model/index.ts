@@ -7,8 +7,16 @@
 
 export * from './analysisRequest';
 export * from './analysisResponse';
+export * from './companyProfile';
+export * from './financials';
 export * from './healthResponse';
 export * from './hTTPValidationError';
+export * from './newsItem';
+export * from './rawSource';
+export * from './riskItem';
 export * from './sourceInfo';
+export * from './structuredData';
+export * from './summaryData';
+export * from './swotAnalysis';
 export * from './validationError';
 export * from './validationErrorCtx';

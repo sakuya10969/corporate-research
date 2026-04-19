@@ -6,10 +6,11 @@
  */
 
 /**
- * 参照ソース
+ * SWOT分析
  */
-export interface SourceInfo {
-  url: string;
-  title: string;
-  category?: string;
+export interface SwotAnalysis {
+  strengths?: string[];
+  weaknesses?: string[];
+  opportunities?: string[];
+  threats?: string[];
 }

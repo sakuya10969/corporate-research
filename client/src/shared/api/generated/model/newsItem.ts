@@ -6,10 +6,10 @@
  */
 
 /**
- * 参照ソース
+ * ニュース項目
  */
-export interface SourceInfo {
-  url: string;
+export interface NewsItem {
   title: string;
-  category?: string;
+  date?: string;
+  summary?: string;
 }

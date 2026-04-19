@@ -4,12 +4,18 @@
  * 企業分析エージェント API
  * OpenAPI spec version: 0.1.0
  */
+import type { RawSource } from './rawSource';
 import type { SourceInfo } from './sourceInfo';
+import type { StructuredData } from './structuredData';
+import type { SummaryData } from './summaryData';
 
+/**
+ * 分析結果レスポンス（API返却用）
+ */
 export interface AnalysisResponse {
   company_name: string;
-  summary: string;
-  business_description: string;
-  key_findings: string[];
+  structured: StructuredData;
+  summary: SummaryData;
   sources: SourceInfo[];
+  raw_sources?: RawSource[];
 }

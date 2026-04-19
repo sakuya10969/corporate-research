@@ -6,10 +6,11 @@
  */
 
 /**
- * 参照ソース
+ * 財務情報
  */
-export interface SourceInfo {
-  url: string;
-  title: string;
-  category?: string;
+export interface Financials {
+  revenue?: string;
+  operating_income?: string;
+  net_income?: string;
+  growth_rate?: string;
 }
