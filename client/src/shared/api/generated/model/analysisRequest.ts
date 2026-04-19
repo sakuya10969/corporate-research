@@ -7,8 +7,9 @@
 
 export interface AnalysisRequest {
   /**
+     * 分析対象の企業URL（例: https://www.toyota.co.jp/）
      * @minLength 1
-     * @pattern .*\S.*
+     * @pattern ^https?://.*
      */
-  company_name: string;
+  company_url: string;
 }

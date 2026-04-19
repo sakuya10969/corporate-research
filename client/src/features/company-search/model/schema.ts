@@ -1,12 +1,12 @@
 import * as v from "valibot";
 
 export const companySearchSchema = v.object({
-  company_name: v.pipe(
+  company_url: v.pipe(
     v.string(),
-    v.nonEmpty("企業名を入力してください"),
+    v.nonEmpty("企業URLを入力してください"),
     v.trim(),
-    v.minLength(1, "企業名を入力してください"),
-    v.regex(/\S/, "空白のみの入力はできません"),
+    v.url("有効なURLを入力してください"),
+    v.regex(/^https?:\/\//, "http:// または https:// で始まるURLを入力してください"),
   ),
 });
 

@@ -13,9 +13,11 @@ import type { SummaryData } from './summaryData';
  * 分析結果レスポンス（API返却用）
  */
 export interface AnalysisResponse {
-  company_name: string;
+  company_url: string;
   structured: StructuredData;
   summary: SummaryData;
   sources: SourceInfo[];
   raw_sources?: RawSource[];
+  markdown_page?: string;
+  diff_report?: string;
 }

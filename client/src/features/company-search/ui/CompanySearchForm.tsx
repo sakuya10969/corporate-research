@@ -20,7 +20,7 @@ export function CompanySearchForm({ onSubmit, loading }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const result = v.safeParse(companySearchSchema, { company_name: value });
+    const result = v.safeParse(companySearchSchema, { company_url: value });
     if (!result.success) {
       setError(result.issues[0]?.message);
       return;
@@ -33,8 +33,8 @@ export function CompanySearchForm({ onSubmit, loading }: Props) {
     <form onSubmit={handleSubmit}>
       <Group align="flex-end" gap="sm">
         <TextInput
-          label="企業名"
-          placeholder="例: トヨタ自動車"
+          label="企業URL"
+          placeholder="例: https://www.toyota.co.jp/"
           value={value}
           onChange={(e) => setValue(e.currentTarget.value)}
           error={error}

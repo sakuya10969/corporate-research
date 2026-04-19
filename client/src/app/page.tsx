@@ -16,7 +16,7 @@ export default function Home() {
             企業分析エージェント
           </Title>
           <Text c="#64748B" size="md">
-            企業名を入力するだけで、公開情報を自動収集・分析します
+            企業URLを入力するだけで、公開情報を自動収集・分析します
           </Text>
         </Stack>
 

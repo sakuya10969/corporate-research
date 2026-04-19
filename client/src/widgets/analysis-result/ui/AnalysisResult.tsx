@@ -56,12 +56,18 @@ export function AnalysisResult({ data, isLoading, error }: Props) {
 
   const { structured, summary } = data;
   const profile = structured?.company_profile;
+  const displayName = profile?.name || data.company_url;
 
   return (
     <Stack gap="md">
-      <Text fw={700} size="xl" c="#1E293B">
-        {data.company_name}
-      </Text>
+      <Stack gap={4}>
+        <Text fw={700} size="xl" c="#1E293B">
+          {displayName}
+        </Text>
+        <Anchor href={data.company_url} target="_blank" rel="noopener noreferrer" size="sm" c="#2563EB">
+          {data.company_url}
+        </Anchor>
+      </Stack>
 
       {/* 企業概要サマリー */}
       {summary?.overview && (
@@ -249,6 +255,33 @@ export function AnalysisResult({ data, isLoading, error }: Props) {
           ))}
         </List>
       </CompanyCard>
+
+      {/* 差分レポート */}
+      {data.diff_report && (
+        <CompanyCard title="差分レポート">
+          <Text size="sm" c="#1E293B" style={{ lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+            {data.diff_report}
+          </Text>
+        </CompanyCard>
+      )}
+
+      {/* Markdownレポート（折りたたみ） */}
+      {data.markdown_page && (
+        <CompanyCard title="Markdownレポート">
+          <details>
+            <summary style={{ cursor: "pointer", color: "#64748B", fontSize: 14 }}>
+              レポート全文を表示
+            </summary>
+            <Text
+              size="sm"
+              c="#1E293B"
+              style={{ lineHeight: 1.7, whiteSpace: "pre-wrap", marginTop: 8 }}
+            >
+              {data.markdown_page}
+            </Text>
+          </details>
+        </CompanyCard>
+      )}
     </Stack>
   );
 }

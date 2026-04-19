@@ -12,4 +12,5 @@ export interface RawSource {
   url: string;
   title: string;
   content: string;
+  category?: string;
 }
