@@ -22,18 +22,18 @@
 
 ```json
 {
-  "company_name": "string"  // 必須。分析対象の企業名
+  "company_url": "string"  // 必須。分析対象の企業URL（例: https://www.toyota.co.jp/）
 }
 ```
 
 バリデーション：
-- `company_name`: 必須、1文字以上、空白のみは不可
+- `company_url`: 必須、`http://` または `https://` で始まるURL
 
 ### AnalysisResponse
 
 ```json
 {
-  "company_name": "string",
+  "company_url": "string",
   "structured": {
     "company_profile": {
       "name": "", "founded": "", "ceo": "", "location": "", "employees": "", "capital": ""
@@ -58,17 +58,21 @@
     "outlook": "string"
   },
   "sources": [{"url": "string", "title": "string", "category": "string"}],
-  "raw_sources": [{"url": "string", "title": "string", "content": "string"}]
+  "raw_sources": [{"url": "string", "title": "string", "content": "string", "category": "string"}],
+  "markdown_page": "string",
+  "diff_report": "string"
 }
 ```
 
 | フィールド | 型 | 説明 |
 |-----------|-----|------|
-| company_name | string | 分析対象の企業名 |
+| company_url | string | 分析対象の企業URL |
 | structured | StructuredData | 構造化抽出結果（企業プロフィール、事業領域、財務等） |
 | summary | SummaryData | 要約・SWOT分析・競合推定・展望 |
 | sources | SourceInfo[] | 参照した情報ソース（カテゴリ付き） |
-| raw_sources | RawSource[] | 生テキストソース |
+| raw_sources | RawSource[] | 生テキストソース（カテゴリ付き） |
+| markdown_page | string | 人間向けMarkdownレポート |
+| diff_report | string | 差分検知レポート（過去データがある場合） |
 
 ### SourceInfo
 
@@ -100,7 +104,7 @@
 
 | ステータスコード | 用途 |
 |----------------|------|
-| 400 | バリデーションエラー（企業名が空など） |
+| 400 | バリデーションエラー（URLが無効など） |
 | 404 | 企業情報が見つからない場合 |
 | 500 | 内部エラー（情報収集失敗、AI処理失敗など） |
 | 503 | 外部サービス（Azure AI Foundry）が利用不可 |
@@ -128,8 +132,8 @@
 
 | # | 機能 | エンドポイント | 説明 |
 |---|------|--------------|------|
-| F-001 | 企業名入力 | — | フロントエンドのフォームUI。Valibot でバリデーション |
-| F-002 | 企業分析実行 | POST /api/analysis | 企業名を受け取り、情報収集→AI分析→結果返却 |
+| F-001 | 企業URL入力 | — | フロントエンドのフォームUI。Valibot でURL バリデーション |
+| F-002 | 企業分析実行 | POST /api/analysis | 企業URLを受け取り、サイト情報収集→AI分析→結果返却 |
 | F-003 | 分析結果表示 | — | フロントエンドで AnalysisResponse を構造化表示 |
 | F-004 | ヘルスチェック | GET /api/health | サーバー稼働確認 |
 
