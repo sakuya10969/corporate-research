@@ -5,6 +5,7 @@ import httpx
 
 from src.collector.parsers import extract_body_text, extract_title
 from src.shared.exceptions import CollectionError
+from src.shared.logger import logger
 
 _TIMEOUT = 15.0
 _MAX_CONTENT_LENGTH = 8000
@@ -32,8 +33,10 @@ async def _fetch_page(client: httpx.AsyncClient, url: str) -> str | None:
     try:
         resp = await client.get(url, headers=_HEADERS, timeout=_TIMEOUT, follow_redirects=True)
         resp.raise_for_status()
+        logger.debug("取得成功: {} ({})", url, resp.status_code)
         return resp.text
-    except httpx.HTTPError:
+    except httpx.HTTPError as e:
+        logger.warning("取得失敗: {} - {}", url, e)
         return None
 
 
@@ -56,6 +59,7 @@ def _extract_search_urls(html: str) -> list[str]:
 async def collect_company_info(company_name: str) -> CompanyInfo:
     query = f"{company_name} 企業情報 会社概要"
     search_url = f"{_SEARCH_URL}?q={quote(query)}"
+    logger.info("検索開始: {} → {}", company_name, search_url)
 
     try:
         async with httpx.AsyncClient() as client:
@@ -64,7 +68,12 @@ async def collect_company_info(company_name: str) -> CompanyInfo:
                 raise CollectionError(f"検索結果を取得できませんでした: {company_name}")
 
             urls = _extract_search_urls(search_html)
+            logger.info("検索結果URL: {} 件", len(urls))
+            for i, url in enumerate(urls):
+                logger.debug("  [{}] {}", i + 1, url)
+
             if not urls:
+                logger.warning("検索結果HTMLからURLを抽出できず (HTML長: {}文字)", len(search_html))
                 raise CollectionError(f"関連ページが見つかりませんでした: {company_name}")
 
             sources: list[SourceInfo] = []
@@ -80,6 +89,8 @@ async def collect_company_info(company_name: str) -> CompanyInfo:
                         title=title or url,
                         content=body[:_MAX_CONTENT_LENGTH],
                     ))
+                else:
+                    logger.debug("本文抽出失敗: {}", url)
 
             if not sources:
                 raise CollectionError(f"企業情報を取得できませんでした: {company_name}")
@@ -88,6 +99,7 @@ async def collect_company_info(company_name: str) -> CompanyInfo:
                 f"【{s.title}】\n{s.content}" for s in sources
             )
 
+            logger.info("情報収集完了: {} ({} ソース)", company_name, len(sources))
             return CompanyInfo(
                 company_name=company_name,
                 sources=sources,
@@ -96,4 +108,5 @@ async def collect_company_info(company_name: str) -> CompanyInfo:
     except CollectionError:
         raise
     except Exception as e:
+        logger.error("情報収集中に予期しないエラー: {}", e)
         raise CollectionError(f"情報収集中にエラーが発生しました: {e}") from e
