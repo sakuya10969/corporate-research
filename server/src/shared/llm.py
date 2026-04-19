@@ -1,16 +1,21 @@
+from azure.identity import ClientSecretCredential
+from langchain.chat_models import init_chat_model
 from langchain_core.language_models import BaseChatModel
-from langchain_openai import AzureChatOpenAI
 
 from src.shared.config import get_settings
 
 
 def get_llm() -> BaseChatModel:
     settings = get_settings()
-    return AzureChatOpenAI(
-        azure_deployment=settings.azure_deployment,
-        azure_endpoint=settings.azure_openai_endpoint,
-        api_key=settings.azure_openai_api_key,
-        api_version=settings.api_version,
+    credential = ClientSecretCredential(
+        tenant_id=settings.tenant_id,
+        client_id=settings.client_id,
+        client_secret=settings.client_secret,
+    )
+    return init_chat_model(
+        f"azure_ai:{settings.llm_model_name}",
+        project_endpoint=settings.azure_ai_project_endpoint,
+        credential=credential,
         temperature=0,
         max_tokens=None,
         timeout=None,
