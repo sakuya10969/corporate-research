@@ -29,13 +29,13 @@
 
 ### 概要
 
-企業名を受け取り、Web情報収集 → AI要約・分析 → 構造化結果返却を行うバックエンド処理。
+企業名（またはURL）を受け取り、Web情報収集 → 前処理・分類 → 構造化抽出 → 要約・SWOT生成 → 構造化結果返却を行うバックエンド処理。
 
 ### 仕様
 
 - エンドポイント: `POST /api/analysis`
 - リクエスト: `{ "company_name": "string" }`
-- レスポンス: `AnalysisResponse`（company_name, summary, business_description, key_findings, sources）
+- レスポンス: `AnalysisResponse`（company_name, structured, summary, sources, raw_sources）
 
 ### 処理フロー
 
@@ -43,24 +43,34 @@
 1. analysis.router がリクエストを受付・Pydantic バリデーション
 2. analysis.service.analyze_company() を呼び出し
 3. collector.service.collect_company_info() で Web 情報収集
-   - httpx で対象ページを取得
-   - BeautifulSoup + lxml で HTML パース・テキスト抽出
-   - CompanyInfo エンティティとして構造化
-4. 収集情報を LangChain チェーンに渡す
-   - プロンプトテンプレート（prompts.py）を使用
-   - langchain-azure-ai 経由で Azure AI Foundry のモデルを呼び出し
-   - 出力パーサーで構造化
-5. AnalysisResult を生成してレスポンス返却
+   a. URL正規化（企業名 → 公式サイトURL推定、URL入力はそのまま使用）
+   b. サイトマップ探索（/sitemap.xml）→ 優先度付きURL選定
+   c. サイトマップなしの場合: トップページから内部リンク探索（深さ1-2）
+   d. 各ページを並行取得 → 構造保持テキスト抽出（表・リスト構造維持）
+   e. ページカテゴリ分類（会社概要/事業内容/IR/ニュース等）
+   f. Google検索で補完収集
+   g. 前処理（ボイラープレート除去、正規化、カテゴリ別グルーピング）
+   h. CompanyInfo エンティティとして構造化
+4. Stage 1: 構造化抽出（EXTRACTION_PROMPT）
+   - 分類済みコンテキストを LLM に投入
+   - 企業プロフィール、事業領域、製品、財務、ニュース、リスクを抽出
+   - StructuredData として構造化
+5. Stage 2: 要約・分析生成（SUMMARY_PROMPT）
+   - StructuredData を LLM に投入
+   - 企業概要サマリー、事業モデル、SWOT、競合推定、展望を生成
+   - SummaryData として構造化
+6. AnalysisResponse を生成してレスポンス返却
 ```
 
 ### 技術的詳細
 
-- バックエンドモジュール: `analysis`（フロー制御）、`collector`（情報収集）
+- バックエンドモジュール: `analysis`（フロー制御・2段階パイプライン）、`collector`（情報収集・前処理）
+- 共通ユーティリティ: `shared/http_client.py`（リトライ付きHTTPクライアント）、`shared/text.py`（テキスト前処理・LLMコンテキスト整形）
 - LLM 接続: `shared/llm.py` で初期化した LangChain クライアントを使用
-- プロンプト: `analysis/prompts.py` にテンプレートを定義
+- プロンプト: `analysis/prompts.py` に EXTRACTION_PROMPT と SUMMARY_PROMPT の2テンプレートを定義
 - エラーハンドリング:
   - 情報収集失敗 → 500 エラー（detail にメッセージ）
-  - AI 処理失敗 → 500 エラー
+  - AI 処理失敗（構造化抽出/要約生成） → 500 エラー
   - Azure AI Foundry 接続不可 → 503 エラー
 
 ---
@@ -74,17 +84,26 @@
 ### 仕様
 
 - 企業名をヘッダーとして表示
-- 企業概要（summary）をカード形式で表示
-- 事業内容（business_description）をセクションとして表示
-- 主要な発見事項（key_findings）をリスト形式で表示
-- 参照ソース（sources）をリンク付きリストで表示
+- 企業概要サマリー（summary.overview）をカード形式で表示
+- 企業プロフィール（structured.company_profile）を項目別に表示
+- 事業モデル（summary.business_model）をセクションとして表示
+- 事業領域（structured.business_domains）をバッジ形式で表示
+- プロダクト・サービス（structured.products）をリスト形式で表示
+- 財務情報（structured.financials）を項目別に表示
+- SWOT分析（summary.swot）を強み/弱み/機会/脅威に分けて表示
+- リスク要因（summary.risks）をリスト形式で表示
+- 競合企業（summary.competitors）をバッジ形式で表示
+- 今後の展望（summary.outlook）をテキスト表示
+- ニュース（structured.news）を日付付きリスト形式で表示
+- 参照ソース（sources）をカテゴリバッジ付きリンクリストで表示
 - ローディング中はスケルトンUIを表示
 - エラー時はエラーメッセージを表示
+- 各セクションはデータが存在する場合のみ表示（空データは非表示）
 
 ### 技術的詳細
 
 - FSD 配置: `widgets/analysis-result/`
-- UI: Mantine の Card, Text, List, Anchor, Skeleton 等を使用
+- UI: Mantine の Card, Text, List, Anchor, Skeleton, Badge, Group, Stack, Alert 等を使用
 - 状態管理: React Query の query 状態（isLoading, isError, data）を利用
 - エンティティ表示: `entities/company/ui/CompanyCard.tsx` を widgets 内で利用
 

@@ -34,32 +34,49 @@
 ```json
 {
   "company_name": "string",
-  "summary": "string",
-  "business_description": "string",
-  "key_findings": ["string"],
-  "sources": [
-    {
-      "url": "string",
-      "title": "string"
-    }
-  ]
+  "structured": {
+    "company_profile": {
+      "name": "", "founded": "", "ceo": "", "location": "", "employees": "", "capital": ""
+    },
+    "business_domains": ["string"],
+    "products": ["string"],
+    "financials": {
+      "revenue": "", "operating_income": "", "net_income": "", "growth_rate": ""
+    },
+    "news": [{"title": "string", "date": "string", "summary": "string"}],
+    "risks": [{"category": "string", "description": "string"}]
+  },
+  "summary": {
+    "overview": "string",
+    "business_model": "string",
+    "swot": {
+      "strengths": ["string"], "weaknesses": ["string"],
+      "opportunities": ["string"], "threats": ["string"]
+    },
+    "risks": ["string"],
+    "competitors": ["string"],
+    "outlook": "string"
+  },
+  "sources": [{"url": "string", "title": "string", "category": "string"}],
+  "raw_sources": [{"url": "string", "title": "string", "content": "string"}]
 }
 ```
 
 | フィールド | 型 | 説明 |
 |-----------|-----|------|
 | company_name | string | 分析対象の企業名 |
-| summary | string | 企業概要の要約 |
-| business_description | string | 事業内容の説明 |
-| key_findings | string[] | 主要な発見事項のリスト |
-| sources | SourceInfo[] | 参照した情報ソース |
+| structured | StructuredData | 構造化抽出結果（企業プロフィール、事業領域、財務等） |
+| summary | SummaryData | 要約・SWOT分析・競合推定・展望 |
+| sources | SourceInfo[] | 参照した情報ソース（カテゴリ付き） |
+| raw_sources | RawSource[] | 生テキストソース |
 
 ### SourceInfo
 
 ```json
 {
   "url": "string",
-  "title": "string"
+  "title": "string",
+  "category": "string"
 }
 ```
 
