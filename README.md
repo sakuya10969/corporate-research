@@ -91,12 +91,12 @@ uv run fastapi dev main.py
 #### 利用可能なコマンド
 
 ```bash
-make dev            # 開発サーバー起動
-make lint           # Ruff lint チェック
-make lint-fix       # Ruff lint 自動修正
-make format         # Ruff フォーマット
-make format-check   # Ruff フォーマットチェック（CI用）
-make openapi        # OpenAPI スキーマエクスポート
+uv run dev            # 開発サーバー起動
+uv run lint           # Ruff lint チェック
+uv run lint-fix       # Ruff lint 自動修正
+uv run format         # Ruff フォーマット
+uv run format-check   # Ruff フォーマットチェック（CI用）
+uv run openapi        # OpenAPI スキーマエクスポート
 ```
 
 ### フロントエンド
