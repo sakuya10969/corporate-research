@@ -8,7 +8,12 @@ from pydantic import BaseModel, Field
 # ---------------------------------------------------------------------------
 
 class AnalysisRequest(BaseModel):
-    company_name: str = Field(..., min_length=1, pattern=r".*\S.*")
+    company_url: str = Field(
+        ...,
+        min_length=1,
+        pattern=r"^https?://.*",
+        description="分析対象の企業URL（例: https://www.toyota.co.jp/）",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -58,6 +63,7 @@ class RawSource(BaseModel):
     url: str
     title: str
     content: str
+    category: str = "その他"
 
 
 class StructuredData(BaseModel):
@@ -98,11 +104,13 @@ class SummaryData(BaseModel):
 
 class AnalysisResponse(BaseModel):
     """分析結果レスポンス（API返却用）"""
-    company_name: str
+    company_url: str
     structured: StructuredData
     summary: SummaryData
     sources: list[SourceInfo]
     raw_sources: list[RawSource] = Field(default_factory=list)
+    markdown_page: str = ""
+    diff_report: str = ""
 
 
 # ---------------------------------------------------------------------------

@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
     azure_ai_project_endpoint: str
-    llm_model_name: str = "gpt-4.1"
+    llm_model_name: str
     cors_origins: list[str] = ["http://localhost:3000"]
 
 

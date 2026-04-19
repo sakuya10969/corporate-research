@@ -66,24 +66,25 @@
     "schemas": {
       "AnalysisRequest": {
         "properties": {
-          "company_name": {
+          "company_url": {
             "type": "string",
             "minLength": 1,
-            "pattern": ".*\\S.*",
-            "title": "Company Name"
+            "pattern": "^https?://.*",
+            "title": "Company Url",
+            "description": "分析対象の企業URL（例: https://www.toyota.co.jp/）"
           }
         },
         "type": "object",
         "required": [
-          "company_name"
+          "company_url"
         ],
         "title": "AnalysisRequest"
       },
       "AnalysisResponse": {
         "properties": {
-          "company_name": {
+          "company_url": {
             "type": "string",
-            "title": "Company Name"
+            "title": "Company Url"
           },
           "structured": {
             "$ref": "#/components/schemas/StructuredData"
@@ -104,11 +105,21 @@
             },
             "type": "array",
             "title": "Raw Sources"
+          },
+          "markdown_page": {
+            "type": "string",
+            "title": "Markdown Page",
+            "default": ""
+          },
+          "diff_report": {
+            "type": "string",
+            "title": "Diff Report",
+            "default": ""
           }
         },
         "type": "object",
         "required": [
-          "company_name",
+          "company_url",
           "structured",
           "summary",
           "sources"
@@ -241,6 +252,11 @@
           "content": {
             "type": "string",
             "title": "Content"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category",
+            "default": "その他"
           }
         },
         "type": "object",

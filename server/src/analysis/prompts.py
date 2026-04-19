@@ -15,7 +15,7 @@ EXTRACTION_PROMPT = ChatPromptTemplate.from_messages([
     (
         "system",
         "あなたは企業情報の構造化抽出の専門家です。\n"
-        "提供された企業の収集情報を分析し、以下のJSON形式で構造化してください。\n"
+        "提供された企業サイトの収集情報を分析し、以下のJSON形式で構造化してください。\n"
         "必ず有効なJSONのみを出力し、それ以外のテキストは含めないでください。\n"
         "不明な項目は空文字列または空配列にしてください。推測ではなく、提供された情報に基づいて回答してください。\n\n"
         "出力JSON形式:\n"
@@ -46,11 +46,10 @@ EXTRACTION_PROMPT = ChatPromptTemplate.from_messages([
     ),
     (
         "human",
-        "以下は「{company_name}」に関する収集情報です。カテゴリ別に整理されています。\n\n"
+        "以下は企業サイト「{company_url}」から収集した情報です。カテゴリ別に整理されています。\n\n"
         "{classified_content}"
     ),
 ])
-
 
 # ---------------------------------------------------------------------------
 # Stage 2: 要約・分析プロンプト
@@ -81,6 +80,6 @@ SUMMARY_PROMPT = ChatPromptTemplate.from_messages([
     ),
     (
         "human",
-        "以下は「{company_name}」の構造化データです。\n\n{structured_json}"
+        "以下は企業サイト「{company_url}」の構造化データです。\n\n{structured_json}"
     ),
 ])

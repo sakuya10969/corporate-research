@@ -1,4 +1,4 @@
-"""分析サービス — 2段階パイプライン（構造化抽出 → 要約生成）"""
+"""分析サービス — 2段階パイプライン（構造化抽出 → 要約生成）+ Markdown・差分"""
 
 from __future__ import annotations
 
@@ -24,21 +24,24 @@ from src.collector.service import collect_company_info
 from src.shared.exceptions import AnalysisError, CollectionError, ExternalServiceError
 from src.shared.llm import get_llm
 from src.shared.logger import logger
+from src.shared.text import generate_diff_report, generate_markdown_report
 
 
 async def analyze_company(request: AnalysisRequest) -> AnalysisResponse:
     """企業分析のメインフロー。
 
-    1. collector で情報収集（サイトマップ探索・ページ分類付き）
+    1. collector で情報収集（サイトマップ探索・ページ分類付き、Google検索なし）
     2. Stage 1: LLM で構造化抽出
     3. Stage 2: LLM で要約・SWOT・展望生成
-    4. レスポンス構築
+    4. Markdown レポート生成
+    5. 差分検知（過去データがあれば）
+    6. レスポンス構築
     """
-    logger.info("分析開始: {}", request.company_name)
+    logger.info("分析開始: {}", request.company_url)
 
     # --- 情報収集 ---
     try:
-        company_info = await collect_company_info(request.company_name)
+        company_info = await collect_company_info(request.company_url)
     except CollectionError:
         raise
 
@@ -52,15 +55,15 @@ async def analyze_company(request: AnalysisRequest) -> AnalysisResponse:
 
     # --- Stage 1: 構造化抽出 ---
     structured = await _extract_structured(
-        llm, request.company_name, company_info.raw_content,
+        llm, request.company_url, company_info.raw_content,
     )
-    logger.info("構造化抽出完了: {}", request.company_name)
+    logger.info("構造化抽出完了: {}", request.company_url)
 
     # --- Stage 2: 要約生成 ---
     summary = await _generate_summary(
-        llm, request.company_name, structured,
+        llm, request.company_url, structured,
     )
-    logger.info("要約生成完了: {}", request.company_name)
+    logger.info("要約生成完了: {}", request.company_url)
 
     # --- レスポンス構築 ---
     sources = [
@@ -69,26 +72,42 @@ async def analyze_company(request: AnalysisRequest) -> AnalysisResponse:
     ]
 
     raw_sources = [
-        RawSource(url=s.url, title=s.title, content=s.content)
+        RawSource(url=s.url, title=s.title, content=s.content, category=s.category)
         for s in company_info.sources
     ]
 
-    logger.info("分析完了: {}", request.company_name)
+    # --- Markdown レポート生成 ---
+    structured_dict = structured.model_dump()
+    summary_dict = summary.model_dump()
+    sources_dict = [s.model_dump() for s in sources]
+    markdown_page = generate_markdown_report(
+        company_url=request.company_url,
+        structured=structured_dict,
+        summary=summary_dict,
+        sources=sources_dict,
+    )
+
+    # --- 差分検知（MVP: 過去データなし → 空文字列） ---
+    diff_report = generate_diff_report(structured_dict, None)
+
+    logger.info("分析完了: {}", request.company_url)
     return AnalysisResponse(
-        company_name=request.company_name,
+        company_url=request.company_url,
         structured=structured,
         summary=summary,
         sources=sources,
         raw_sources=raw_sources,
+        markdown_page=markdown_page,
+        diff_report=diff_report,
     )
 
 
-async def _extract_structured(llm, company_name: str, raw_content: str) -> StructuredData:
+async def _extract_structured(llm, company_url: str, raw_content: str) -> StructuredData:
     """Stage 1: 収集データから構造化情報を抽出する。"""
     try:
         chain = EXTRACTION_PROMPT | llm | StrOutputParser()
         result_text = await chain.ainvoke({
-            "company_name": company_name,
+            "company_url": company_url,
             "classified_content": raw_content,
         })
         logger.debug("構造化抽出 LLM応答 ({}文字)", len(result_text))
@@ -144,14 +163,14 @@ def _parse_structured(text: str) -> StructuredData:
     )
 
 
-async def _generate_summary(llm, company_name: str, structured: StructuredData) -> SummaryData:
+async def _generate_summary(llm, company_url: str, structured: StructuredData) -> SummaryData:
     """Stage 2: 構造化データから要約・SWOT・展望を生成する。"""
     structured_json = structured.model_dump_json(indent=2)
 
     try:
         chain = SUMMARY_PROMPT | llm | StrOutputParser()
         result_text = await chain.ainvoke({
-            "company_name": company_name,
+            "company_url": company_url,
             "structured_json": structured_json,
         })
         logger.debug("要約生成 LLM応答 ({}文字)", len(result_text))
@@ -193,7 +212,6 @@ def _clean_json(text: str) -> str:
     text = text.strip()
     if text.startswith("```"):
         lines = text.split("\n")
-        # 最初の ``` 行と最後の ``` 行を除去
         start = 1
         end = len(lines)
         for i in range(len(lines) - 1, 0, -1):
