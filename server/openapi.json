@@ -85,20 +85,11 @@
             "type": "string",
             "title": "Company Name"
           },
+          "structured": {
+            "$ref": "#/components/schemas/StructuredData"
+          },
           "summary": {
-            "type": "string",
-            "title": "Summary"
-          },
-          "business_description": {
-            "type": "string",
-            "title": "Business Description"
-          },
-          "key_findings": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Key Findings"
+            "$ref": "#/components/schemas/SummaryData"
           },
           "sources": {
             "items": {
@@ -106,17 +97,88 @@
             },
             "type": "array",
             "title": "Sources"
+          },
+          "raw_sources": {
+            "items": {
+              "$ref": "#/components/schemas/RawSource"
+            },
+            "type": "array",
+            "title": "Raw Sources"
           }
         },
         "type": "object",
         "required": [
           "company_name",
+          "structured",
           "summary",
-          "business_description",
-          "key_findings",
           "sources"
         ],
-        "title": "AnalysisResponse"
+        "title": "AnalysisResponse",
+        "description": "分析結果レスポンス（API返却用）"
+      },
+      "CompanyProfile": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "default": ""
+          },
+          "founded": {
+            "type": "string",
+            "title": "Founded",
+            "default": ""
+          },
+          "ceo": {
+            "type": "string",
+            "title": "Ceo",
+            "default": ""
+          },
+          "location": {
+            "type": "string",
+            "title": "Location",
+            "default": ""
+          },
+          "employees": {
+            "type": "string",
+            "title": "Employees",
+            "default": ""
+          },
+          "capital": {
+            "type": "string",
+            "title": "Capital",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "CompanyProfile",
+        "description": "企業プロフィール"
+      },
+      "Financials": {
+        "properties": {
+          "revenue": {
+            "type": "string",
+            "title": "Revenue",
+            "default": ""
+          },
+          "operating_income": {
+            "type": "string",
+            "title": "Operating Income",
+            "default": ""
+          },
+          "net_income": {
+            "type": "string",
+            "title": "Net Income",
+            "default": ""
+          },
+          "growth_rate": {
+            "type": "string",
+            "title": "Growth Rate",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "Financials",
+        "description": "財務情報"
       },
       "HTTPValidationError": {
         "properties": {
@@ -142,6 +204,73 @@
         "type": "object",
         "title": "HealthResponse"
       },
+      "NewsItem": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "date": {
+            "type": "string",
+            "title": "Date",
+            "default": ""
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "title": "NewsItem",
+        "description": "ニュース項目"
+      },
+      "RawSource": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url",
+          "title",
+          "content"
+        ],
+        "title": "RawSource",
+        "description": "生テキストソース"
+      },
+      "RiskItem": {
+        "properties": {
+          "category": {
+            "type": "string",
+            "title": "Category",
+            "default": ""
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "description"
+        ],
+        "title": "RiskItem",
+        "description": "リスク要因"
+      },
       "SourceInfo": {
         "properties": {
           "url": {
@@ -151,6 +280,11 @@
           "title": {
             "type": "string",
             "title": "Title"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category",
+            "default": "その他"
           }
         },
         "type": "object",
@@ -158,7 +292,123 @@
           "url",
           "title"
         ],
-        "title": "SourceInfo"
+        "title": "SourceInfo",
+        "description": "参照ソース"
+      },
+      "StructuredData": {
+        "properties": {
+          "company_profile": {
+            "$ref": "#/components/schemas/CompanyProfile"
+          },
+          "business_domains": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Business Domains"
+          },
+          "products": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Products"
+          },
+          "financials": {
+            "$ref": "#/components/schemas/Financials"
+          },
+          "news": {
+            "items": {
+              "$ref": "#/components/schemas/NewsItem"
+            },
+            "type": "array",
+            "title": "News"
+          },
+          "risks": {
+            "items": {
+              "$ref": "#/components/schemas/RiskItem"
+            },
+            "type": "array",
+            "title": "Risks"
+          }
+        },
+        "type": "object",
+        "title": "StructuredData",
+        "description": "構造化抽出結果"
+      },
+      "SummaryData": {
+        "properties": {
+          "overview": {
+            "type": "string",
+            "title": "Overview",
+            "default": ""
+          },
+          "business_model": {
+            "type": "string",
+            "title": "Business Model",
+            "default": ""
+          },
+          "swot": {
+            "$ref": "#/components/schemas/SwotAnalysis"
+          },
+          "risks": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Risks"
+          },
+          "competitors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Competitors"
+          },
+          "outlook": {
+            "type": "string",
+            "title": "Outlook",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "SummaryData",
+        "description": "要約・分析結果"
+      },
+      "SwotAnalysis": {
+        "properties": {
+          "strengths": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Strengths"
+          },
+          "weaknesses": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Weaknesses"
+          },
+          "opportunities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Opportunities"
+          },
+          "threats": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Threats"
+          }
+        },
+        "type": "object",
+        "title": "SwotAnalysis",
+        "description": "SWOT分析"
       },
       "ValidationError": {
         "properties": {
