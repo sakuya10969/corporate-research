@@ -22,11 +22,3 @@ dev = [
     "loguru>=0.7.3",
     "ruff>=0.15.11",
 ]
-
-[tool.uv.scripts]
-dev = "fastapi dev main.py"
-lint = "ruff check ."
-lint-fix = "ruff check --fix ."
-format = "ruff format ."
-format-check = "ruff format --check ."
-openapi = "python scripts/export_openapi.py"
