@@ -42,10 +42,24 @@ app → pages → widgets → features → entities → shared
 ### OpenAPI 連携の位置づけ
 
 ```
-FastAPI (自動生成) → openapi.json → Orval → shared/api/generated/
+FastAPI (自動生成) → openapi.json → Orval (mode: tags-split) → shared/api/generated/{tag}/{tag}.ts
 ```
 
 フロントエンドの API 層は Orval による自動生成を前提とし、手書きの API 呼び出しは原則不要。生成された React Query フックを features / widgets から利用する。
+
+Orval は `mode: "tags-split"` を使用し、FastAPI ルーターのタグ単位でファイルを分割する。
+
+| タグ | 生成ファイル | 対応エンドポイント |
+|------|------------|-----------------|
+| `analysis` | `generated/analysis/analysis.ts` | 分析実行・結果取得・ダウンロード |
+| `auth` | `generated/auth/auth.ts` | ユーザー同期 |
+| `companies` | `generated/companies/companies.ts` | 履歴・深掘り分析 |
+| `compare` | `generated/compare/compare.ts` | 複数企業比較 |
+| `health` | `generated/health/health.ts` | ヘルスチェック |
+| `search` | `generated/search/search.ts` | 企業名検索 |
+| `share` | `generated/share/share.ts` | シェア作成・取得 |
+
+FastAPI 側でエンドポイントにタグを付与することで、生成物の分割粒度を制御できる。
 
 ## バックエンド — モジュラーモノリス
 
