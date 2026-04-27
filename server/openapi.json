@@ -7,6 +7,9 @@
   "paths": {
     "/api/analysis": {
       "post": {
+        "tags": [
+          "analysis"
+        ],
         "summary": "Post Analysis",
         "operationId": "post_analysis_api_analysis_post",
         "requestBody": {
@@ -45,6 +48,9 @@
     },
     "/api/analysis/{result_id}": {
       "get": {
+        "tags": [
+          "analysis"
+        ],
         "summary": "Get Analysis Result",
         "operationId": "get_analysis_result_api_analysis__result_id__get",
         "parameters": [
@@ -85,6 +91,9 @@
     },
     "/api/analysis/{result_id}/download": {
       "get": {
+        "tags": [
+          "analysis"
+        ],
         "summary": "Download Analysis",
         "operationId": "download_analysis_api_analysis__result_id__download_get",
         "parameters": [
@@ -137,6 +146,9 @@
     },
     "/api/companies/{company_id}/runs": {
       "get": {
+        "tags": [
+          "companies"
+        ],
         "summary": "Get Company Runs",
         "operationId": "get_company_runs_api_companies__company_id__runs_get",
         "parameters": [
@@ -177,6 +189,9 @@
     },
     "/api/analysis/{result_id}/share": {
       "post": {
+        "tags": [
+          "share"
+        ],
         "summary": "Create Share",
         "operationId": "create_share_api_analysis__result_id__share_post",
         "parameters": [
@@ -219,6 +234,9 @@
     },
     "/api/share/{share_id}": {
       "get": {
+        "tags": [
+          "share"
+        ],
         "summary": "Get Shared Result",
         "operationId": "get_shared_result_api_share__share_id__get",
         "parameters": [
@@ -258,6 +276,9 @@
     },
     "/api/companies/{company_id}/deep-research": {
       "post": {
+        "tags": [
+          "companies"
+        ],
         "summary": "Post Deep Research",
         "operationId": "post_deep_research_api_companies__company_id__deep_research_post",
         "parameters": [
@@ -312,6 +333,9 @@
     },
     "/api/search": {
       "get": {
+        "tags": [
+          "search"
+        ],
         "summary": "Search Company",
         "operationId": "search_company_api_search_get",
         "parameters": [
@@ -352,6 +376,9 @@
     },
     "/api/compare": {
       "post": {
+        "tags": [
+          "compare"
+        ],
         "summary": "Post Compare",
         "operationId": "post_compare_api_compare_post",
         "requestBody": {
@@ -390,6 +417,9 @@
     },
     "/api/health": {
       "get": {
+        "tags": [
+          "health"
+        ],
         "summary": "Get Health",
         "operationId": "get_health_api_health_get",
         "responses": {
@@ -404,6 +434,53 @@
             }
           }
         }
+      }
+    },
+    "/api/users/sync": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Sync User",
+        "description": "Clerk ユーザー情報をアプリケーション DB へ同期する。\n\n- 未認証: 401（get_current_user_id が処理）\n- DB エラー: 500",
+        "operationId": "sync_user_api_users_sync_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserSyncRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       }
     }
   },
@@ -1074,6 +1151,59 @@
         "type": "object",
         "title": "SwotAnalysis"
       },
+      "UserResponse": {
+        "properties": {
+          "clerk_user_id": {
+            "type": "string",
+            "title": "Clerk User Id"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "clerk_user_id",
+          "email",
+          "display_name",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "UserResponse"
+      },
+      "UserSyncRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "display_name"
+        ],
+        "title": "UserSyncRequest"
+      },
       "ValidationError": {
         "properties": {
           "loc": {
@@ -1113,6 +1243,12 @@
           "type"
         ],
         "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
       }
     }
   }

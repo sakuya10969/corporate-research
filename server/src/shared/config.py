@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     api_version: str
     database_url: str = "postgresql+asyncpg://admin:password@localhost:5432/corporate-research"
     cors_origins: list[str] = ["http://localhost:3000"]
+    clerk_issuer_url: str = ""
+    clerk_jwks_url: str = ""
 
 
 @lru_cache

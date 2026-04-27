@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from src.analysis.router import router as analysis_router
+from src.auth.router import router as auth_router
 from src.shared.config import get_settings
 from src.shared.exceptions import AnalysisError, CollectionError, ExternalServiceError
 from src.shared.llm import init_llm
@@ -23,6 +24,7 @@ app.add_middleware(
 )
 
 app.include_router(analysis_router, prefix="/api")
+app.include_router(auth_router, prefix="/api")
 
 
 @app.middleware("http")

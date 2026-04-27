@@ -35,7 +35,7 @@ SessionDep = Annotated[AsyncSession, Depends(get_session)]
 # 分析（F-001/F-002/F-005）
 # ---------------------------------------------------------------------------
 
-@router.post("/analysis", response_model=AnalysisResponse)
+@router.post("/analysis", response_model=AnalysisResponse, tags=["analysis"])
 async def post_analysis(request: AnalysisRequest, session: SessionDep) -> AnalysisResponse:
     return await analyze_company(request, session)
 
@@ -44,7 +44,7 @@ async def post_analysis(request: AnalysisRequest, session: SessionDep) -> Analys
 # 分析結果取得（F-008）
 # ---------------------------------------------------------------------------
 
-@router.get("/analysis/{result_id}", response_model=AnalysisResponse)
+@router.get("/analysis/{result_id}", response_model=AnalysisResponse, tags=["analysis"])
 async def get_analysis_result(result_id: uuid.UUID, session: SessionDep) -> AnalysisResponse:
     repo = AnalysisResultRepository(session)
     result = await repo.find_by_id(result_id)
@@ -58,7 +58,7 @@ async def get_analysis_result(result_id: uuid.UUID, session: SessionDep) -> Anal
 # ダウンロード（F-009）
 # ---------------------------------------------------------------------------
 
-@router.get("/analysis/{result_id}/download")
+@router.get("/analysis/{result_id}/download", tags=["analysis"])
 async def download_analysis(
     result_id: uuid.UUID,
     format: Annotated[Literal["pdf", "docx"], Query()] = "pdf",
@@ -94,7 +94,7 @@ async def download_analysis(
 # 分析履歴（F-008）
 # ---------------------------------------------------------------------------
 
-@router.get("/companies/{company_id}/runs", response_model=HistoryResponse)
+@router.get("/companies/{company_id}/runs", response_model=HistoryResponse, tags=["companies"])
 async def get_company_runs(company_id: uuid.UUID, session: SessionDep) -> HistoryResponse:
     run_repo = AnalysisRunRepository(session)
     runs = await run_repo.list_by_company(company_id)
@@ -121,7 +121,7 @@ async def get_company_runs(company_id: uuid.UUID, session: SessionDep) -> Histor
 # シェア（F-012）
 # ---------------------------------------------------------------------------
 
-@router.post("/analysis/{result_id}/share")
+@router.post("/analysis/{result_id}/share", tags=["share"])
 async def create_share(result_id: uuid.UUID, session: SessionDep) -> dict:
     repo = AnalysisResultRepository(session)
     result = await repo.find_by_id(result_id)
@@ -135,7 +135,7 @@ async def create_share(result_id: uuid.UUID, session: SessionDep) -> dict:
     return {"share_id": result.share_id}
 
 
-@router.get("/share/{share_id}", response_model=AnalysisResponse)
+@router.get("/share/{share_id}", response_model=AnalysisResponse, tags=["share"])
 async def get_shared_result(share_id: str, session: SessionDep) -> AnalysisResponse:
     repo = AnalysisResultRepository(session)
     result = await repo.find_by_share_id(share_id)
@@ -149,7 +149,7 @@ async def get_shared_result(share_id: str, session: SessionDep) -> AnalysisRespo
 # 深掘り分析（F-007）
 # ---------------------------------------------------------------------------
 
-@router.post("/companies/{company_id}/deep-research")
+@router.post("/companies/{company_id}/deep-research", tags=["companies"])
 async def post_deep_research(
     company_id: uuid.UUID,
     body: dict,
@@ -169,7 +169,7 @@ async def post_deep_research(
 # 企業名検索（F-011）
 # ---------------------------------------------------------------------------
 
-@router.get("/search", response_model=SearchResponse)
+@router.get("/search", response_model=SearchResponse, tags=["search"])
 async def search_company(q: Annotated[str, Query(min_length=1)]) -> SearchResponse:
     results = await search_company_url(q)
     from src.analysis.schemas import SearchResult
@@ -180,7 +180,7 @@ async def search_company(q: Annotated[str, Query(min_length=1)]) -> SearchRespon
 # 複数企業比較（F-013）
 # ---------------------------------------------------------------------------
 
-@router.post("/compare", response_model=CompareResponse)
+@router.post("/compare", response_model=CompareResponse, tags=["compare"])
 async def post_compare(request: CompareRequest, session: SessionDep) -> CompareResponse:
     return await compare_companies(request, session)
 
@@ -189,6 +189,6 @@ async def post_compare(request: CompareRequest, session: SessionDep) -> CompareR
 # ヘルスチェック
 # ---------------------------------------------------------------------------
 
-@router.get("/health", response_model=HealthResponse)
+@router.get("/health", response_model=HealthResponse, tags=["health"])
 async def get_health() -> HealthResponse:
     return HealthResponse()
