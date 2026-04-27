@@ -1,5 +1,11 @@
 """分析モジュール — Pydantic スキーマ定義"""
 
+from __future__ import annotations
+
+import uuid
+from datetime import datetime
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 
@@ -15,16 +21,18 @@ class AnalysisRequest(BaseModel):
         pattern=r"^https?://.*",
         description="分析対象の企業URL（例: https://www.toyota.co.jp/）",
     )
+    force_refresh: bool = Field(False, description="キャッシュを無視して再分析する")
+    template: Literal["general", "job_hunting", "investment", "competitor", "partnership"] = Field(
+        "general", description="分析テンプレート"
+    )
 
 
 # ---------------------------------------------------------------------------
-# 構造化抽出結果（LLM出力 → パース先）
+# 構造化抽出結果
 # ---------------------------------------------------------------------------
 
 
 class CompanyProfile(BaseModel):
-    """企業プロフィール"""
-
     name: str = ""
     founded: str = ""
     ceo: str = ""
@@ -34,8 +42,6 @@ class CompanyProfile(BaseModel):
 
 
 class Financials(BaseModel):
-    """財務情報"""
-
     revenue: str = ""
     operating_income: str = ""
     net_income: str = ""
@@ -43,31 +49,23 @@ class Financials(BaseModel):
 
 
 class NewsItem(BaseModel):
-    """ニュース項目"""
-
     title: str
     date: str = ""
     summary: str = ""
 
 
 class RiskItem(BaseModel):
-    """リスク要因"""
-
     category: str = ""
     description: str
 
 
 class SourceInfo(BaseModel):
-    """参照ソース"""
-
     url: str
     title: str
     category: str = "その他"
 
 
 class RawSource(BaseModel):
-    """生テキストソース"""
-
     url: str
     title: str
     content: str
@@ -75,8 +73,6 @@ class RawSource(BaseModel):
 
 
 class StructuredData(BaseModel):
-    """構造化抽出結果"""
-
     company_profile: CompanyProfile = Field(default_factory=CompanyProfile)
     business_domains: list[str] = Field(default_factory=list)
     products: list[str] = Field(default_factory=list)
@@ -91,8 +87,6 @@ class StructuredData(BaseModel):
 
 
 class SwotAnalysis(BaseModel):
-    """SWOT分析"""
-
     strengths: list[str] = Field(default_factory=list)
     weaknesses: list[str] = Field(default_factory=list)
     opportunities: list[str] = Field(default_factory=list)
@@ -100,8 +94,6 @@ class SwotAnalysis(BaseModel):
 
 
 class SummaryData(BaseModel):
-    """要約・分析結果"""
-
     overview: str = ""
     business_model: str = ""
     swot: SwotAnalysis = Field(default_factory=SwotAnalysis)
@@ -111,20 +103,93 @@ class SummaryData(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# スコアリング（F-014）
+# ---------------------------------------------------------------------------
+
+
+class ScoreItem(BaseModel):
+    score: int = Field(0, ge=0, le=100)
+    reason: str = ""
+
+
+class ScoreData(BaseModel):
+    financial_health: ScoreItem = Field(default_factory=ScoreItem)
+    growth_potential: ScoreItem = Field(default_factory=ScoreItem)
+    competitive_edge: ScoreItem = Field(default_factory=ScoreItem)
+    risk_level: ScoreItem = Field(default_factory=ScoreItem)
+    info_transparency: ScoreItem = Field(default_factory=ScoreItem)
+
+
+# ---------------------------------------------------------------------------
 # APIレスポンス
 # ---------------------------------------------------------------------------
 
 
 class AnalysisResponse(BaseModel):
-    """分析結果レスポンス（API返却用）"""
-
     company_url: str
+    result_id: uuid.UUID | None = None
+    company_id: uuid.UUID | None = None
+    is_cached: bool = False
+    analyzed_at: datetime | None = None
     structured: StructuredData
     summary: SummaryData
+    scores: ScoreData | None = None
     sources: list[SourceInfo]
     raw_sources: list[RawSource] = Field(default_factory=list)
     markdown_page: str = ""
     diff_report: str = ""
+    template: str = "general"
+
+
+# ---------------------------------------------------------------------------
+# 履歴レスポンス（F-008）
+# ---------------------------------------------------------------------------
+
+
+class RunSummary(BaseModel):
+    run_id: uuid.UUID
+    run_type: str
+    status: str
+    template: str
+    started_at: datetime | None
+    completed_at: datetime | None
+    duration_ms: int | None
+    error_message: str | None
+    result_id: uuid.UUID | None
+
+
+class HistoryResponse(BaseModel):
+    company_id: uuid.UUID
+    runs: list[RunSummary]
+
+
+# ---------------------------------------------------------------------------
+# 比較リクエスト/レスポンス（F-013）
+# ---------------------------------------------------------------------------
+
+
+class CompareRequest(BaseModel):
+    urls: list[str] = Field(..., min_length=2, max_length=3)
+    template: Literal["general", "job_hunting", "investment", "competitor", "partnership"] = "general"
+
+
+class CompareResponse(BaseModel):
+    results: list[AnalysisResponse]
+    comparison_summary: str = ""
+
+
+# ---------------------------------------------------------------------------
+# 検索レスポンス（F-011）
+# ---------------------------------------------------------------------------
+
+
+class SearchResult(BaseModel):
+    name: str
+    url: str
+
+
+class SearchResponse(BaseModel):
+    results: list[SearchResult]
 
 
 # ---------------------------------------------------------------------------

@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     azure_openai_api_key: str
     azure_deployment: str
     api_version: str
+    database_url: str = "postgresql+asyncpg://admin:password@localhost:5432/corporate-research"
     cors_origins: list[str] = ["http://localhost:3000"]
 
 

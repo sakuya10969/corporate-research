@@ -43,6 +43,351 @@
         }
       }
     },
+    "/api/analysis/{result_id}": {
+      "get": {
+        "summary": "Get Analysis Result",
+        "operationId": "get_analysis_result_api_analysis__result_id__get",
+        "parameters": [
+          {
+            "name": "result_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Result Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analysis/{result_id}/download": {
+      "get": {
+        "summary": "Download Analysis",
+        "operationId": "download_analysis_api_analysis__result_id__download_get",
+        "parameters": [
+          {
+            "name": "result_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Result Id"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "pdf",
+                "docx"
+              ],
+              "type": "string",
+              "default": "pdf",
+              "title": "Format"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company_id}/runs": {
+      "get": {
+        "summary": "Get Company Runs",
+        "operationId": "get_company_runs_api_companies__company_id__runs_get",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Company Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistoryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analysis/{result_id}/share": {
+      "post": {
+        "summary": "Create Share",
+        "operationId": "create_share_api_analysis__result_id__share_post",
+        "parameters": [
+          {
+            "name": "result_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Result Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Create Share Api Analysis  Result Id  Share Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/share/{share_id}": {
+      "get": {
+        "summary": "Get Shared Result",
+        "operationId": "get_shared_result_api_share__share_id__get",
+        "parameters": [
+          {
+            "name": "share_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Share Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{company_id}/deep-research": {
+      "post": {
+        "summary": "Post Deep Research",
+        "operationId": "post_deep_research_api_companies__company_id__deep_research_post",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Company Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Post Deep Research Api Companies  Company Id  Deep Research Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/search": {
+      "get": {
+        "summary": "Search Company",
+        "operationId": "search_company_api_search_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "title": "Q"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/compare": {
+      "post": {
+        "summary": "Post Compare",
+        "operationId": "post_compare_api_compare_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompareRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompareResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/health": {
       "get": {
         "summary": "Get Health",
@@ -72,6 +417,25 @@
             "pattern": "^https?://.*",
             "title": "Company Url",
             "description": "分析対象の企業URL（例: https://www.toyota.co.jp/）"
+          },
+          "force_refresh": {
+            "type": "boolean",
+            "title": "Force Refresh",
+            "description": "キャッシュを無視して再分析する",
+            "default": false
+          },
+          "template": {
+            "type": "string",
+            "enum": [
+              "general",
+              "job_hunting",
+              "investment",
+              "competitor",
+              "partnership"
+            ],
+            "title": "Template",
+            "description": "分析テンプレート",
+            "default": "general"
           }
         },
         "type": "object",
@@ -86,11 +450,62 @@
             "type": "string",
             "title": "Company Url"
           },
+          "result_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result Id"
+          },
+          "company_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company Id"
+          },
+          "is_cached": {
+            "type": "boolean",
+            "title": "Is Cached",
+            "default": false
+          },
+          "analyzed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Analyzed At"
+          },
           "structured": {
             "$ref": "#/components/schemas/StructuredData"
           },
           "summary": {
             "$ref": "#/components/schemas/SummaryData"
+          },
+          "scores": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ScoreData"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "sources": {
             "items": {
@@ -115,6 +530,11 @@
             "type": "string",
             "title": "Diff Report",
             "default": ""
+          },
+          "template": {
+            "type": "string",
+            "title": "Template",
+            "default": "general"
           }
         },
         "type": "object",
@@ -124,8 +544,7 @@
           "summary",
           "sources"
         ],
-        "title": "AnalysisResponse",
-        "description": "分析結果レスポンス（API返却用）"
+        "title": "AnalysisResponse"
       },
       "CompanyProfile": {
         "properties": {
@@ -161,8 +580,58 @@
           }
         },
         "type": "object",
-        "title": "CompanyProfile",
-        "description": "企業プロフィール"
+        "title": "CompanyProfile"
+      },
+      "CompareRequest": {
+        "properties": {
+          "urls": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "minItems": 2,
+            "title": "Urls"
+          },
+          "template": {
+            "type": "string",
+            "enum": [
+              "general",
+              "job_hunting",
+              "investment",
+              "competitor",
+              "partnership"
+            ],
+            "title": "Template",
+            "default": "general"
+          }
+        },
+        "type": "object",
+        "required": [
+          "urls"
+        ],
+        "title": "CompareRequest"
+      },
+      "CompareResponse": {
+        "properties": {
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisResponse"
+            },
+            "type": "array",
+            "title": "Results"
+          },
+          "comparison_summary": {
+            "type": "string",
+            "title": "Comparison Summary",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "results"
+        ],
+        "title": "CompareResponse"
       },
       "Financials": {
         "properties": {
@@ -188,8 +657,7 @@
           }
         },
         "type": "object",
-        "title": "Financials",
-        "description": "財務情報"
+        "title": "Financials"
       },
       "HTTPValidationError": {
         "properties": {
@@ -215,6 +683,28 @@
         "type": "object",
         "title": "HealthResponse"
       },
+      "HistoryResponse": {
+        "properties": {
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Company Id"
+          },
+          "runs": {
+            "items": {
+              "$ref": "#/components/schemas/RunSummary"
+            },
+            "type": "array",
+            "title": "Runs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "company_id",
+          "runs"
+        ],
+        "title": "HistoryResponse"
+      },
       "NewsItem": {
         "properties": {
           "title": {
@@ -236,8 +726,7 @@
         "required": [
           "title"
         ],
-        "title": "NewsItem",
-        "description": "ニュース項目"
+        "title": "NewsItem"
       },
       "RawSource": {
         "properties": {
@@ -265,8 +754,7 @@
           "title",
           "content"
         ],
-        "title": "RawSource",
-        "description": "生テキストソース"
+        "title": "RawSource"
       },
       "RiskItem": {
         "properties": {
@@ -284,8 +772,172 @@
         "required": [
           "description"
         ],
-        "title": "RiskItem",
-        "description": "リスク要因"
+        "title": "RiskItem"
+      },
+      "RunSummary": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Run Id"
+          },
+          "run_type": {
+            "type": "string",
+            "title": "Run Type"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "template": {
+            "type": "string",
+            "title": "Template"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "duration_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Ms"
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
+          "result_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "run_type",
+          "status",
+          "template",
+          "started_at",
+          "completed_at",
+          "duration_ms",
+          "error_message",
+          "result_id"
+        ],
+        "title": "RunSummary"
+      },
+      "ScoreData": {
+        "properties": {
+          "financial_health": {
+            "$ref": "#/components/schemas/ScoreItem"
+          },
+          "growth_potential": {
+            "$ref": "#/components/schemas/ScoreItem"
+          },
+          "competitive_edge": {
+            "$ref": "#/components/schemas/ScoreItem"
+          },
+          "risk_level": {
+            "$ref": "#/components/schemas/ScoreItem"
+          },
+          "info_transparency": {
+            "$ref": "#/components/schemas/ScoreItem"
+          }
+        },
+        "type": "object",
+        "title": "ScoreData"
+      },
+      "ScoreItem": {
+        "properties": {
+          "score": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Score",
+            "default": 0
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "ScoreItem"
+      },
+      "SearchResponse": {
+        "properties": {
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/SearchResult"
+            },
+            "type": "array",
+            "title": "Results"
+          }
+        },
+        "type": "object",
+        "required": [
+          "results"
+        ],
+        "title": "SearchResponse"
+      },
+      "SearchResult": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "url"
+        ],
+        "title": "SearchResult"
       },
       "SourceInfo": {
         "properties": {
@@ -308,8 +960,7 @@
           "url",
           "title"
         ],
-        "title": "SourceInfo",
-        "description": "参照ソース"
+        "title": "SourceInfo"
       },
       "StructuredData": {
         "properties": {
@@ -349,8 +1000,7 @@
           }
         },
         "type": "object",
-        "title": "StructuredData",
-        "description": "構造化抽出結果"
+        "title": "StructuredData"
       },
       "SummaryData": {
         "properties": {
@@ -388,8 +1038,7 @@
           }
         },
         "type": "object",
-        "title": "SummaryData",
-        "description": "要約・分析結果"
+        "title": "SummaryData"
       },
       "SwotAnalysis": {
         "properties": {
@@ -423,8 +1072,7 @@
           }
         },
         "type": "object",
-        "title": "SwotAnalysis",
-        "description": "SWOT分析"
+        "title": "SwotAnalysis"
       },
       "ValidationError": {
         "properties": {
