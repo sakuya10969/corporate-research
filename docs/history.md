@@ -178,3 +178,176 @@
 ### alembic.ini sqlalchemy.url 修正 ✅
 - 完了日: 2026-04-27
 - 内容: `localhost:5432://admin:password@localhost/corporate-research` → `postgresql+asyncpg://admin:password@localhost:5432/corporate-research` に修正
+
+---
+
+## Phase 5: V1 — データ永続化基盤
+
+### T-018: DB スキーマ定義 & マイグレーション ✅
+- 完了日: 2026-04-27
+- 実装内容:
+  - `companies`, `analysis_results`, `analysis_runs` テーブル定義（ORM + Alembic autogenerate）
+  - `uv run alembic upgrade head` で適用済み
+
+### T-019: DB クライアント & リポジトリ層 ✅
+- 完了日: 2026-04-27
+- 対象: `server/src/shared/db.py`, `server/src/db/repository.py`
+- 実装内容:
+  - SQLAlchemy async engine / session（`get_session` FastAPI Depends 対応）
+  - `CompanyRepository` — upsert, find_by_url
+  - `AnalysisResultRepository` — save, find_latest_by_company, find_by_id, find_by_share_id, list_by_company
+  - `AnalysisRunRepository` — create, update_status, list_by_company
+
+### T-020: 分析サービスへの永続化統合 ✅
+- 完了日: 2026-04-27
+- 対象: `server/src/analysis/service.py`
+- 実装内容:
+  - キャッシュチェック（同一URL再入力時に DB から返却）
+  - 分析完了後に `companies` / `analysis_results` / `analysis_runs` へ保存
+  - `AnalysisResponse` に `result_id`, `company_id`, `is_cached`, `analyzed_at` 追加
+
+### T-021: 永続化対応 API エンドポイント更新 ✅
+- 完了日: 2026-04-27
+- 対象: `server/src/analysis/router.py`, `server/src/analysis/schemas.py`
+- 実装内容:
+  - `POST /api/analysis` に `force_refresh`, `template` パラメータ追加
+  - `GET /api/analysis/{result_id}` — 過去の分析結果取得
+  - `GET /api/companies/{company_id}/runs` — 分析履歴一覧
+
+### T-022: フロントエンド — キャッシュ通知 UI ✅
+- 完了日: 2026-04-27
+- 対象: `client/src/features/company-search/ui/CompanySearchForm.tsx`
+- 実装内容:
+  - 過去分析済みの場合に「前回分析: {日時}」バナー表示
+  - 「最新情報で更新する」ボタンで `force_refresh=true` 再送信
+
+---
+
+## Phase 6: V1 — 分析履歴管理
+
+### T-023: 分析履歴 API ✅
+- 完了日: 2026-04-27
+- 対象: `server/src/analysis/router.py`
+- 実装内容:
+  - `GET /api/companies/{company_id}/runs` — run_type, status, started_at, completed_at, duration_ms 一覧
+
+### T-024: フロントエンド — 分析履歴タブ ✅
+- 完了日: 2026-04-27
+- 対象: `client/src/widgets/analysis-result/ui/AnalysisResult.tsx`
+- 実装内容:
+  - Tabs コンポーネントで「分析結果」「分析履歴」「深掘り分析」タブ追加
+  - 実行日時・種別・状態・duration 一覧表示
+
+---
+
+## Phase 7: V1 — ダウンロード機能
+
+### T-025: サーバーサイド PDF / Word 生成エンドポイント ✅
+- 完了日: 2026-04-27
+- 対象: `server/src/download/generator.py`, `server/src/analysis/router.py`
+- 実装内容:
+  - `uv add weasyprint python-docx markdown` で依存追加
+  - `GET /api/analysis/{result_id}/download?format=pdf` — WeasyPrint で HTML→PDF 変換
+  - `GET /api/analysis/{result_id}/download?format=docx` — python-docx で Word 生成
+  - Noto Sans JP フォント適用、Content-Disposition: attachment
+
+### T-026: フロントエンド — PDF / Word ダウンロード UI ✅
+- 完了日: 2026-04-27
+- 対象: `client/src/widgets/analysis-result/ui/AnalysisResult.tsx`
+- 実装内容:
+  - Mantine Menu ドロップダウンで PDF / Word 2択
+  - fetch → Blob → `<a>` タグでブラウザダウンロード
+
+---
+
+## Phase 8: V1 — 差分更新分析
+
+### T-027: ページハッシュ管理 ✅
+- 完了日: 2026-04-27
+- 対象: `server/src/db/models.py`（PageSnapshot モデル追加）
+- 実装内容:
+  - `page_snapshots` テーブル（content_hash, etag, last_modified, OGP メタ等）
+  - Alembic autogenerate で `cf968a334637` マイグレーション生成・適用
+
+### T-028: 差分分析サービス ✅
+- 完了日: 2026-04-27
+- 対象: `server/src/analysis/service.py`
+- 実装内容:
+  - `run_type=refresh` 時に前回 structured と比較して `diff_report` 生成
+  - `generate_diff_report` を利用
+
+### T-029: フロントエンド — 差分表示 ✅
+- 完了日: 2026-04-27
+- 対象: `client/src/widgets/analysis-result/ui/AnalysisResult.tsx`
+- 実装内容:
+  - `diff_report` が存在する場合に「前回分析からの変更点」Alert バナー付きで表示
+
+---
+
+## Phase 9: V1 — 深掘り分析
+
+### T-030: 深掘り分析 API ✅
+- 完了日: 2026-04-27
+- 対象: `server/src/deep_research/service.py`, `server/src/analysis/router.py`
+- 実装内容:
+  - `POST /api/companies/{company_id}/deep-research` — openai-agents Agent ループで回答
+  - `deep_research_sessions` / `deep_research_messages` テーブルに保存
+  - 保存済み structured + summary をコンテキストとして使用
+
+### T-031: フロントエンド — 深掘り質問 UI ✅
+- 完了日: 2026-04-27
+- 対象: `client/src/widgets/analysis-result/ui/AnalysisResult.tsx`
+- 実装内容:
+  - 「深掘り分析」タブに会話形式 UI
+  - Textarea + 送信ボタン、質問・回答を交互に表示
+  - セッション ID を保持して継続会話対応
+
+---
+
+## Phase 10: V2 — 分析テンプレート & スコアリング
+
+### T-032: 分析テンプレート ✅
+- 完了日: 2026-04-27
+- 対象: `server/src/analysis/prompts.py`, `server/src/analysis/schemas.py`
+- 実装内容:
+  - `AnalysisRequest` に `template` フィールド追加（general/job_hunting/investment/competitor/partnership）
+  - `get_summary_system(template)` でテンプレート別プロンプト分岐
+  - フロントエンド: Select コンポーネントでテンプレート選択
+
+### T-033: 分析スコアリング ✅
+- 完了日: 2026-04-27
+- 対象: `server/src/analysis/service.py`, `server/src/analysis/schemas.py`
+- 実装内容:
+  - Stage 2 LLM 呼び出しでスコアも同時生成（`ScoreData` — 5観点 × score + reason）
+  - `AnalysisResponse` に `scores` フィールド追加
+  - フロントエンド: スコアバー + 根拠テキスト表示（ScoreCard コンポーネント）
+
+---
+
+## Phase 11: V2 — 企業名検索・シェア・比較
+
+### T-034: 企業名検索 URL 補完 ✅
+- 完了日: 2026-04-27
+- 対象: `server/src/search/service.py`, `client/src/features/company-search/ui/CompanySearchForm.tsx`
+- 実装内容:
+  - `GET /api/search?q={企業名}` — DuckDuckGo Instant Answer API で URL 候補最大5件
+  - フロントエンド: Mantine Autocomplete + useDebouncedValue でオートコンプリート
+
+### T-035: 分析結果シェア ✅
+- 完了日: 2026-04-27
+- 対象: `server/src/analysis/router.py`, `client/src/app/share/[shareId]/page.tsx`
+- 実装内容:
+  - `POST /api/analysis/{result_id}/share` — share_id 生成（UUID 先頭8文字）
+  - `GET /api/share/{share_id}` — 公開分析結果取得（認証不要）
+  - フロントエンド: シェアボタン → URL クリップボードコピー + コピー完了フィードバック
+  - `/share/[shareId]` ページ（読み取り専用）+ OGP メタタグ
+
+### T-036: 複数企業比較 ✅
+- 完了日: 2026-04-27
+- 対象: `server/src/analysis/compare_service.py`, `client/src/app/compare/page.tsx`
+- 実装内容:
+  - `POST /api/compare` — 最大3社を asyncio.gather で並行分析
+  - AI による比較サマリー生成（COMPARISON_SYSTEM プロンプト）
+  - `comparison_sessions` テーブルに保存
+  - フロントエンド: `/compare` ページ（URL入力 × 最大3、横並び比較テーブル・SWOT・財務）
+  - トップページに「複数企業を比較する →」リンク追加
