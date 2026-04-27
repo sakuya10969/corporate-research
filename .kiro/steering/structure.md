@@ -71,10 +71,23 @@ client/src/
 └── shared/                     # 共通リソース
     ├── api/
     │   ├── generated/           # Orval 自動生成（編集禁止）
-    │   │   ├── client.ts        # API クライアント関数
-    │   │   ├── model.ts         # リクエスト / レスポンス型
-    │   │   └── queries.ts       # React Query フック
-    │   ├── instance.ts          # Axios インスタンス設定
+    │   │   ├── analysis/        # 分析エンドポイント
+    │   │   │   └── analysis.ts
+    │   │   ├── auth/            # 認証エンドポイント
+    │   │   │   └── auth.ts
+    │   │   ├── companies/       # 企業・履歴・深掘りエンドポイント
+    │   │   │   └── companies.ts
+    │   │   ├── compare/         # 比較エンドポイント
+    │   │   │   └── compare.ts
+    │   │   ├── health/          # ヘルスチェックエンドポイント
+    │   │   │   └── health.ts
+    │   │   ├── search/          # 企業検索エンドポイント
+    │   │   │   └── search.ts
+    │   │   ├── share/           # シェアエンドポイント
+    │   │   │   └── share.ts
+    │   │   └── model/           # リクエスト / レスポンス型
+    │   ├── client.ts            # 認証済み Axios クライアント（Clerk JWT 付与）
+    │   ├── instance.ts          # Axios インスタンス設定（Orval mutator）
     │   └── index.ts
     ├── ui/                      # 共通 UI コンポーネント
     │   └── index.ts
@@ -213,14 +226,14 @@ import { defineConfig } from "orval";
 export default defineConfig({
   api: {
     input: {
-      target: "http://localhost:8000/openapi.json",
+      target: "../server/openapi.json",
     },
     output: {
-      target: "./src/shared/api/generated/client.ts",
+      target: "./src/shared/api/generated",
       schemas: "./src/shared/api/generated/model",
       client: "react-query",
       httpClient: "axios",
-      mode: "tags-split",
+      mode: "tags-split",          // FastAPI タグ単位でファイル分割
       override: {
         mutator: {
           path: "./src/shared/api/instance.ts",
@@ -247,10 +260,12 @@ npx orval
 
 ```typescript
 // features/company-search/ui/CompanySearchForm.tsx
-import { useAnalyzeCompany } from "@/shared/api/generated/queries";
+import { useSearchCompanyApiSearchGet } from "@/shared/api/generated/search/search";
+import { usePostAnalysisApiAnalysisPost } from "@/shared/api/generated/analysis/analysis";
 
-const mutation = useAnalyzeCompany();
-mutation.mutate({ companyName: "株式会社サンプル" });
+const { data } = useSearchCompanyApiSearchGet({ q: "トヨタ" });
+const mutation = usePostAnalysisApiAnalysisPost();
+mutation.mutate({ data: { url: "https://toyota.co.jp", template: "general" } });
 ```
 
 ## フロントエンドとバックエンドの責務分離
