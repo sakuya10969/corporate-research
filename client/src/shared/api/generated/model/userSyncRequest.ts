@@ -5,4 +5,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type PostDeepResearchApiCompaniesCompanyIdDeepResearchPost200 = { [key: string]: unknown };
+export interface UserSyncRequest {
+  email: string;
+  display_name: string;
+}
