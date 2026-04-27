@@ -8,6 +8,7 @@ import {
   mantineHtmlProps,
 } from "@mantine/core";
 import { QueryProvider } from "./query-provider";
+import { ClerkProvider } from "@clerk/nextjs";
 
 const theme = createTheme({
   primaryColor: "blue",
@@ -39,15 +40,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ja" {...mantineHtmlProps}>
-      <head>
-        <ColorSchemeScript forceColorScheme="light" />
-      </head>
-      <body style={{ backgroundColor: "#FFFFFF" }}>
-        <MantineProvider theme={theme} forceColorScheme="light">
-          <QueryProvider>{children}</QueryProvider>
-        </MantineProvider>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="ja" {...mantineHtmlProps}>
+        <head>
+          <ColorSchemeScript forceColorScheme="light" />
+        </head>
+        <body style={{ backgroundColor: "#FFFFFF" }}>
+          <MantineProvider theme={theme} forceColorScheme="light">
+            <QueryProvider>{children}</QueryProvider>
+          </MantineProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

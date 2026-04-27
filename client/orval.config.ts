@@ -6,7 +6,7 @@ export default defineConfig({
       target: "../server/openapi.json",
     },
     output: {
-      target: "./src/shared/api/generated/client.ts",
+      target: "./src/shared/api/generated",
       schemas: "./src/shared/api/generated/model",
       client: "react-query",
       httpClient: "axios",

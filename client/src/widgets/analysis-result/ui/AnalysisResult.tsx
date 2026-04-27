@@ -24,11 +24,11 @@ import {
 } from "@tabler/icons-react";
 import { useState } from "react";
 import type { AnalysisResponse, RunSummary } from "@/shared/api";
+import { useCreateShareApiAnalysisResultIdSharePost } from "@/shared/api/generated/share/share";
 import {
-  useCreateShareApiAnalysisResultIdSharePost,
   useGetCompanyRunsApiCompaniesCompanyIdRunsGet,
   usePostDeepResearchApiCompaniesCompanyIdDeepResearchPost,
-} from "@/shared/api";
+} from "@/shared/api/generated/companies/companies";
 import { CompanyCard } from "@/entities/company";
 import { env } from "@/shared/config/env";
 
