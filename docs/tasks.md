@@ -4,257 +4,242 @@
 - [specs.md](./specs.md) — 機能仕様
 - [api-design.md](./api-design.md) — APIデザイン・スキーマ定義
 - [domain-design.md](./domain-design.md) — ドメイン設計
-- [architecture-philosophy.md](./architecture-philosophy.md) — アーキテクチャ思想
-- [DESIGN.md](../DESIGN.md) — デザインシステム
-- [.kiro/steering/structure.md](../.kiro/steering/structure.md) — ディレクトリ構成
-
-実装順序: バックエンド → Orval 自動生成 → フロントエンド
+- [history.md](./history.md) — 完了タスク履歴
 
 ---
 
-## Phase 1: バックエンド基盤
+## Phase 5: V1 — データ永続化基盤
 
-### T-001: shared モジュールの作成
+### T-018: DB スキーマ定義 & マイグレーション（F-005）
 
-- 対象: `server/src/shared/`
+- 対象: `server/alembic/`, `server/src/db/`
 - 内容:
-  - `__init__.py` 作成
-  - `config.py` — pydantic-settings による設定管理（Azure AI Foundry 接続情報、アプリ設定）
-  - `llm.py` — LangChain + langchain-azure-ai による LLM クライアント初期化
-  - `exceptions.py` — 共通例外クラス定義（CollectionError, AnalysisError 等）
-- 参照: specs.md 横断的仕様「環境変数管理」「エラーハンドリング」、domain-design.md shared モジュール
+  - `companies` テーブル（company_id, url, name, normalized_domain, created_at）
+  - `analysis_results` テーブル（result_id, company_id, structured JSONB, summary JSONB, sources JSONB, markdown_page, created_at）
+  - `analysis_runs` テーブル（run_id, company_id, result_id, run_type, status, started_at, completed_at, error_message）
+  - Alembic マイグレーションファイル作成
+  - pgvector extension 有効化（docker/init.sql 済み）
+- 参照: specs.md F-005、domain-design.md
 
-### T-002: collector モジュールの作成
+### T-019: DB クライアント & リポジトリ層（F-005）
 
-- 対象: `server/src/collector/`
+- 対象: `server/src/shared/db.py`, `server/src/company/repository.py`
 - 内容:
-  - `__init__.py` 作成
-  - `service.py` — `collect_company_info(company_name: str) -> CompanyInfo` の実装
-    - httpx で企業関連ページを非同期取得
-    - BeautifulSoup + lxml で HTML パース・テキスト抽出
-    - CompanyInfo エンティティとして構造化して返却
-  - `parsers.py` — HTML パーサーユーティリティ（タイトル抽出、本文抽出等）
-- 参照: domain-design.md CollectorService、specs.md F-002 処理フロー Step 3
+  - SQLAlchemy async engine / session 設定
+  - `CompanyRepository` — upsert, find_by_url
+  - `AnalysisResultRepository` — save, find_latest_by_company
+  - `AnalysisRunRepository` — create, update_status
+- 参照: specs.md F-005
 
-### T-003: analysis モジュール — スキーマ定義
-
-- 対象: `server/src/analysis/`
-- 内容:
-  - `__init__.py` 作成
-  - `schemas.py` — Pydantic モデル定義
-    - `AnalysisRequest`（company_name: str、必須、1文字以上、空白のみ不可）
-    - `AnalysisResponse`（company_name, summary, business_description, key_findings, sources）
-    - `SourceInfo`（url, title）
-    - `HealthResponse`（status: str）
-- 参照: api-design.md スキーマ定義、domain-design.md エンティティ
-
-### T-004: analysis モジュール — プロンプト定義
-
-- 対象: `server/src/analysis/prompts.py`
-- 内容:
-  - 企業情報の要約・分析用 LangChain プロンプトテンプレートを定義
-  - 入力: 収集した企業情報テキスト
-  - 出力: summary, business_description, key_findings の構造化データ
-  - 出力パーサー（PydanticOutputParser 等）の設定
-- 参照: specs.md F-002、domain-design.md AnalysisService
-
-### T-005: analysis モジュール — サービス実装
+### T-020: 分析サービスへの永続化統合（F-005）
 
 - 対象: `server/src/analysis/service.py`
 - 内容:
-  - `analyze_company(request: AnalysisRequest) -> AnalysisResponse` の実装
-  - 処理フロー:
-    1. collector.service.collect_company_info() で情報収集
-    2. shared.llm のクライアントを使用して LangChain チェーン実行
-    3. prompts.py のテンプレートで要約・分析
-    4. AnalysisResponse として構造化して返却
-  - エラーハンドリング: 情報収集失敗、AI処理失敗時の例外処理
-- 参照: specs.md F-002 処理フロー、domain-design.md AnalysisService
+  - 分析完了後に `analysis_results` / `analysis_runs` へ保存
+  - 同一 URL の再入力時に過去データを返却 or 再分析を選択できるロジック
+  - `AnalysisResponse` に `is_cached: bool`, `analyzed_at: datetime` を追加
+- 参照: specs.md F-005
 
-### T-006: analysis モジュール — ルーター実装
+### T-021: 永続化対応 API エンドポイント更新（F-005）
+
+- 対象: `server/src/analysis/router.py`, `server/src/analysis/schemas.py`
+- 内容:
+  - `POST /api/analysis` に `force_refresh: bool = False` パラメータ追加
+  - キャッシュヒット時は DB から返却（LLM 呼び出しなし）
+  - `GET /api/companies/{company_id}/history` — 分析履歴一覧（F-008 前提）
+- 参照: specs.md F-005, F-008
+
+### T-022: フロントエンド — キャッシュ通知 UI（F-005）
+
+- 対象: `client/src/features/company-search/`, `client/src/widgets/analysis-result/`
+- 内容:
+  - 過去分析済みの場合に「前回分析: {日時}」バナーを表示
+  - 「最新情報で更新する」ボタンで `force_refresh=true` 再送信
+- 参照: specs.md F-005
+
+---
+
+## Phase 6: V1 — 分析履歴管理（F-008）
+
+### T-023: 分析履歴 API（F-008）
 
 - 対象: `server/src/analysis/router.py`
 - 内容:
-  - `POST /api/analysis` — 企業分析実行エンドポイント
-    - リクエスト: AnalysisRequest
-    - レスポンス: AnalysisResponse
-    - エラー: 400（バリデーション）、500（内部エラー）、503（外部サービス不可）
-  - `GET /api/health` — ヘルスチェックエンドポイント
-    - レスポンス: HealthResponse
-- 参照: api-design.md エンドポイント一覧、specs.md F-002 / F-004
+  - `GET /api/companies/{company_id}/runs` — 実行履歴一覧（run_type, status, started_at, completed_at）
+  - `GET /api/analysis/{result_id}` — 過去の分析結果取得
+- 参照: specs.md F-008
 
-### T-007: FastAPI アプリケーション統合
-
-- 対象: `server/main.py`
-- 内容:
-  - FastAPI アプリケーションインスタンスの作成
-  - analysis_router の登録（prefix="/api"）
-  - CORS 設定（フロントエンド localhost:3000 からのアクセス許可）
-  - 共通例外ハンドラーの登録
-- 参照: structure.md main.py 構成イメージ
-
----
-
-## Phase 2: OpenAPI → Orval 自動生成
-
-### T-008: Orval 設定ファイルの作成
-
-- 対象: `client/orval.config.ts`
-- 内容:
-  - input: `http://localhost:8000/openapi.json`
-  - output:
-    - target: `./src/shared/api/generated/client.ts`
-    - schemas: `./src/shared/api/generated/model`
-    - client: `react-query`
-    - httpClient: `axios`
-  - mutator: `./src/shared/api/instance.ts` の customInstance を指定
-- 参照: structure.md Orval 設定、api-design.md OpenAPI → Orval 自動生成フロー
-
-### T-009: Axios インスタンスの作成
-
-- 対象: `client/src/shared/api/instance.ts`
-- 内容:
-  - Axios インスタンスの作成（baseURL: バックエンドURL）
-  - Orval の mutator として使用する customInstance 関数のエクスポート
-- 参照: structure.md shared/api/instance.ts
-
-### T-010: Orval による API クライアント・型の自動生成
-
-- 前提: T-007（バックエンドサーバー起動可能）、T-008、T-009 が完了していること
-- 内容:
-  - バックエンドサーバーを起動（`http://localhost:8000`）
-  - `client/` ディレクトリで `npx orval` を実行
-  - `client/src/shared/api/generated/` に以下が生成されることを確認:
-    - API クライアント関数
-    - TypeScript 型定義（AnalysisRequest, AnalysisResponse, SourceInfo, HealthResponse）
-    - TanStack React Query フック
-  - `client/src/shared/api/index.ts` で生成物を re-export
-- 参照: api-design.md OpenAPI → Orval 自動生成フロー
-
----
-
-## Phase 3: フロントエンド基盤
-
-デザインは DESIGN.md を遵守すること（白背景 + 青 #2563EB コンポーネント、角丸 8px 統一、影なし）。
-
-### T-011: Mantine テーマ設定
-
-- 対象: `client/src/app/layout.tsx`
-- 内容:
-  - MantineProvider にカスタムテーマを設定
-    - primaryColor: `blue`（shade 6 を #2563EB 相当に）
-    - defaultRadius: `md`（8px）
-    - カラースキーム: `light` 固定
-  - グローバル CSS の調整（背景白、フォント設定）
-- デザイン準拠: DESIGN.md カラーパレット、Mantine テーマとの対応
-
-### T-012: shared/config の作成
-
-- 対象: `client/src/shared/config/env.ts`
-- 内容:
-  - バックエンド API の URL 等、環境変数の管理
-- 参照: specs.md 横断的仕様「環境変数管理」
-
-### T-013: React Query プロバイダーの設定
-
-- 対象: `client/src/app/layout.tsx` または専用プロバイダーファイル
-- 内容:
-  - QueryClientProvider の設定
-  - デフォルトオプション（staleTime、retry 等）の設定
-- 参照: tech-stack.md TanStack React Query
-
----
-
-## Phase 4: フロントエンド機能実装
-
-デザインは DESIGN.md を遵守すること。
-
-### T-014: 企業名入力フォーム（F-001）
-
-- 対象: `client/src/features/company-search/`
-- 内容:
-  - `model/schema.ts` — Valibot バリデーションスキーマ（必須、1文字以上、空白のみ不可）
-  - `ui/CompanySearchForm.tsx` — 企業名入力フォーム
-    - Mantine TextInput + Button
-    - Orval 生成の mutation フックで POST /api/analysis を呼び出し
-    - 送信中はボタンをローディング状態にし、二重送信防止
-    - バリデーションエラーはフィールド下に赤テキストで表示
-  - `index.ts` — barrel export
-- デザイン準拠: DESIGN.md 入力フィールド仕様、ボタン仕様、企業名入力画面レイアウト
-- 参照: specs.md F-001
-
-### T-015: 企業エンティティ表示コンポーネント（entities）
-
-- 対象: `client/src/entities/company/`
-- 内容:
-  - `ui/CompanyCard.tsx` — 企業情報の表示カード
-    - 白背景、Slate 200 ボーダー、角丸 8px、影なし
-    - セクション見出し: SemiBold 18px
-  - `model/types.ts` — 企業関連の手動型定義（Orval 生成型を補完する場合のみ）
-  - `index.ts` — barrel export
-- デザイン準拠: DESIGN.md カード仕様
-- 参照: specs.md F-003
-
-### T-016: 分析結果表示ウィジェット（F-003）
+### T-024: フロントエンド — 分析履歴タブ（F-008）
 
 - 対象: `client/src/widgets/analysis-result/`
 - 内容:
-  - `ui/AnalysisResult.tsx` — 分析結果の構造化表示
-    - 企業名をページタイトルとして表示（Bold 24px）
-    - 企業概要（summary）をカード形式で表示
-    - 事業内容（business_description）をセクションとして表示
-    - 主要な発見事項（key_findings）をリスト形式で表示
-    - 参照ソース（sources）をリンク付きリストで表示（リンク色は青 #2563EB）
-    - ローディング中はスケルトンUI（Mantine Skeleton）
-    - エラー時はエラーメッセージ表示（Error Light 背景 + 赤テキスト + 警告アイコン）
-  - `index.ts` — barrel export
-- デザイン準拠: DESIGN.md 分析結果画面レイアウト、カード仕様、スケルトンUI仕様、エラー表示仕様
-- 参照: specs.md F-003
+  - 分析結果ページに「分析履歴」タブ追加
+  - 実行日時・種別（initial / refresh / deep_research）・状態（completed / failed）一覧表示
+  - 過去の結果を選択して表示切り替え
+- 参照: specs.md F-008
 
-### T-017: トップページの組み立て
+---
 
-- 対象: `client/src/app/page.tsx`
+## Phase 7: V1 — ダウンロード機能（F-009）
+
+### T-025: サーバーサイド PDF / Word 生成エンドポイント（F-009）
+
+- 対象: `server/src/download/`, `server/src/analysis/router.py`
 - 内容:
-  - ページ中央寄せレイアウト（最大幅 960px）
-  - プロダクトのキャッチコピー表示
-  - CompanySearchForm（features/company-search）の配置
-  - AnalysisResult（widgets/analysis-result）の配置
-  - 状態遷移: 初期状態 → 入力中 → 送信中（スケルトン） → 結果表示 / エラー
-- デザイン準拠: DESIGN.md レイアウト方針、インタラクション状態遷移
-- 参照: specs.md F-001 / F-003
+  - `uv add weasyprint python-docx` で依存追加
+  - `GET /api/analysis/{result_id}/download?format=pdf` — WeasyPrint で HTML→PDF 変換して返却
+  - `GET /api/analysis/{result_id}/download?format=docx` — python-docx で Word 生成して返却
+  - PDF: `markdown_page` を HTML に変換 → Noto Sans JP フォント適用 → WeasyPrint でレンダリング
+  - Word: python-docx で見出し・表・リスト構造を持つ `.docx` を生成
+  - レスポンス: `FileResponse` / `StreamingResponse` + `Content-Disposition: attachment`
+  - ファイル名: `{企業名}_{YYYY-MM-DD}.pdf` / `.docx`
+- 参照: specs.md F-009
+
+### T-026: フロントエンド — PDF / Word ダウンロード UI（F-009）
+
+- 対象: `client/src/widgets/analysis-result/ui/AnalysisResult.tsx`
+- 内容:
+  - 「ダウンロード」ボタン（ドロップダウン）追加
+  - PDF / Word の2択を表示
+  - 選択後に `/api/analysis/{result_id}/download?format=pdf|docx` へリクエストしてブラウザダウンロード
+  - ダウンロード中はローディング状態表示
+- 参照: specs.md F-009
+
+---
+
+## Phase 8: V1 — 差分更新分析（F-006）
+
+### T-027: ページハッシュ管理（F-006）
+
+- 対象: `server/src/collector/service.py`, `server/src/db/`
+- 内容:
+  - `page_snapshots` テーブル（url, content_hash, etag, last_modified, fetched_at）
+  - 前回取得時のハッシュと比較し、変化があったページのみ再取得
+  - ETag / Last-Modified ヘッダー対応
+- 参照: specs.md F-006
+
+### T-028: 差分分析サービス（F-006）
+
+- 対象: `server/src/analysis/service.py`
+- 内容:
+  - `run_type=refresh` 時は変化ページのみを対象に再分析
+  - 差分レポート生成（新規ニュース・変更プロフィール・新規プロダクト・財務変化）
+  - `diff_report` フィールドを AnalysisResponse に反映
+- 参照: specs.md F-006
+
+### T-029: フロントエンド — 差分表示（F-006）
+
+- 対象: `client/src/widgets/analysis-result/`
+- 内容:
+  - 変更があったセクションを強調表示（バッジ or ボーダー色変更）
+  - 差分レポートセクションの追加
+- 参照: specs.md F-006
+
+---
+
+## Phase 9: V1 — 深掘り分析（F-007）
+
+### T-030: 深掘り分析 API（F-007）
+
+- 対象: `server/src/analysis/`, `server/src/deep_research/`
+- 内容:
+  - `POST /api/companies/{company_id}/deep-research` — 質問を受け付けて回答
+  - 保存済みデータを優先使用、不足時のみ追加収集
+  - openai-agents の Agent ループで状態付きワークフロー実装
+  - 質問・回答履歴を DB に保存
+- 参照: specs.md F-007
+
+### T-031: フロントエンド — 深掘り質問 UI（F-007）
+
+- 対象: `client/src/widgets/analysis-result/`
+- 内容:
+  - 分析結果ページ下部に「深掘り質問」入力欄追加
+  - 質問・回答を会話形式で表示
+  - ローディング中はストリーミング表示（任意）
+- 参照: specs.md F-007
+
+---
+
+## Phase 10: V2 — 分析テンプレート & スコアリング（F-010, F-014）
+
+### T-032: 分析テンプレート（F-010）
+
+- 対象: `server/src/analysis/prompts.py`, `server/src/analysis/schemas.py`
+- 内容:
+  - `template: Literal["general","job_hunting","investment","competitor","partnership"] = "general"` を AnalysisRequest に追加
+  - テンプレート別プロンプト分岐（EXTRACTION_SYSTEM / SUMMARY_SYSTEM をテンプレートで切り替え）
+- 参照: specs.md F-010
+
+### T-033: 分析スコアリング（F-014）
+
+- 対象: `server/src/analysis/service.py`, `server/src/analysis/schemas.py`
+- 内容:
+  - Stage 2（要約生成）の LLM 呼び出しでスコアも同時生成
+  - `ScoreData`（財務健全性・成長性・競合優位性・リスク度・情報透明性: 各 0〜100 + 根拠文）
+  - AnalysisResponse に `scores: ScoreData` 追加
+  - フロントエンド: レーダーチャート表示（Recharts 等）
+- 参照: specs.md F-014
+
+---
+
+## Phase 11: V2 — 企業名検索・シェア・比較（F-011, F-012, F-013）
+
+### T-034: 企業名検索 URL 補完（F-011）
+
+- 対象: `server/src/search/`, `client/src/features/company-search/`
+- 内容:
+  - `GET /api/search?q={企業名}` — DuckDuckGo Instant Answer API で公式 URL 候補を最大5件返却
+  - フロントエンド: 入力フォームにオートコンプリート候補表示
+- 参照: specs.md F-011
+
+### T-035: 分析結果シェア（F-012）
+
+- 対象: `server/src/analysis/router.py`, `client/src/app/share/`
+- 内容:
+  - `GET /api/share/{share_id}` — 公開分析結果取得（認証不要）
+  - share_id: analysis_id の先頭8文字
+  - フロントエンド: `/share/{share_id}` ページ（読み取り専用）+ OGP メタタグ
+  - 「シェア」ボタン → URL クリップボードコピー
+- 参照: specs.md F-012
+
+### T-036: 複数企業比較（F-013）
+
+- 対象: `server/src/analysis/`, `client/src/app/compare/`
+- 内容:
+  - `POST /api/compare` — 最大3社の分析を並行実行して比較レスポンス返却
+  - AIによる比較コメント生成
+  - フロントエンド: 比較モード UI（横並びテーブル・SWOT カード・レーダーチャート）
+  - URL パラメータ共有（`?compare=url1,url2,url3`）
+- 参照: specs.md F-013
 
 ---
 
 ## タスク依存関係
 
 ```
-T-001 (shared)
+T-018 (DB スキーマ)
   ↓
-T-002 (collector) ← T-001
+T-019 (リポジトリ層) ← T-018
   ↓
-T-003 (schemas)
+T-020 (永続化統合) ← T-019
+T-021 (API 更新) ← T-019
+T-022 (キャッシュ UI) ← T-021
   ↓
-T-004 (prompts) ← T-001
+T-023 (履歴 API) ← T-019
+T-024 (履歴 UI) ← T-023
+T-025 (PDF/Word 生成 API) ← T-020
+T-026 (PDF/Word DL UI) ← T-025
   ↓
-T-005 (service) ← T-001, T-002, T-003, T-004
+T-027 (ページハッシュ) ← T-019
+T-028 (差分分析) ← T-020, T-027
+T-029 (差分 UI) ← T-028
   ↓
-T-006 (router) ← T-003, T-005
+T-030 (深掘り API) ← T-020
+T-031 (深掘り UI) ← T-030
   ↓
-T-007 (main.py) ← T-006
-  ↓
-T-008 (orval config)
-T-009 (axios instance)
-  ↓
-T-010 (orval generate) ← T-007, T-008, T-009
-  ↓
-T-011 (mantine theme)
-T-012 (shared/config)
-T-013 (query provider)
-  ↓
-T-014 (company search form) ← T-010, T-011, T-013
-T-015 (company entity) ← T-011
-  ↓
-T-016 (analysis result widget) ← T-010, T-011, T-015
-  ↓
-T-017 (top page) ← T-014, T-016
+T-032 (テンプレート) ← T-020
+T-033 (スコアリング) ← T-032
+T-034 (企業名検索) ← T-020
+T-035 (シェア) ← T-020
+T-036 (比較) ← T-020, T-035
 ```

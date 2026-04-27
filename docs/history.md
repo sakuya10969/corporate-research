@@ -151,3 +151,30 @@
 ## ビルド検証
 - 完了日: 2026-04-19
 - Next.js ビルド成功（TypeScript エラーなし、静的ページ生成正常）
+
+---
+
+## LLM 基盤刷新（openai-agents 移行）
+
+### LangChain → openai-agents 移行 ✅
+- 完了日: 2026-04-27
+- 対象: `server/src/shared/llm.py`, `server/src/shared/config.py`, `server/src/analysis/prompts.py`, `server/src/analysis/service.py`, `server/main.py`
+- 実装内容:
+  - `llm.py` — `AsyncAzureOpenAI` + `set_default_openai_client` / `set_default_openai_api("chat_completions")` / `set_tracing_disabled(True)` でグローバル初期化
+  - `config.py` — `azure_openai_endpoint`, `azure_openai_api_key`, `azure_deployment`, `api_version` を必須フィールドに変更。`extra="ignore"` で旧変数を無視
+  - `prompts.py` — `ChatPromptTemplate` を廃止しプレーン文字列定数（`EXTRACTION_SYSTEM/HUMAN`, `SUMMARY_SYSTEM/HUMAN`）に変更
+  - `service.py` — LangChain チェーンを `Agent` + `Runner.run()` ベースに刷新。`model=settings.azure_deployment`, `ModelSettings(temperature=0)`
+  - `main.py` — 起動時に `init_llm()` 呼び出しを追加
+  - `uv remove` で langchain / langchain-azure-ai / langgraph / azure-identity 等 41 パッケージ削除
+
+---
+
+## インフラ設定修正
+
+### docker-compose.yml healthcheck 修正 ✅
+- 完了日: 2026-04-27
+- 内容: healthcheck の `-d app_db` を `-d corporate-research` に修正（POSTGRES_DB と不一致だった）
+
+### alembic.ini sqlalchemy.url 修正 ✅
+- 完了日: 2026-04-27
+- 内容: `localhost:5432://admin:password@localhost/corporate-research` → `postgresql+asyncpg://admin:password@localhost:5432/corporate-research` に修正
