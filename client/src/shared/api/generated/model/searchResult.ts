@@ -5,9 +5,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface RawSource {
+export interface SearchResult {
+  name: string;
   url: string;
-  title: string;
-  content: string;
-  category?: string;
 }

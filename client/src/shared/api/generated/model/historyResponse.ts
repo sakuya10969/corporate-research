@@ -4,10 +4,9 @@
  * 企業分析エージェント API
  * OpenAPI spec version: 0.1.0
  */
+import type { RunSummary } from './runSummary';
 
-export interface RawSource {
-  url: string;
-  title: string;
-  content: string;
-  category?: string;
+export interface HistoryResponse {
+  company_id: string;
+  runs: RunSummary[];
 }

@@ -5,9 +5,4 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface RawSource {
-  url: string;
-  title: string;
-  content: string;
-  category?: string;
-}
+export type PostDeepResearchApiCompaniesCompanyIdDeepResearchPostBody = { [key: string]: unknown };

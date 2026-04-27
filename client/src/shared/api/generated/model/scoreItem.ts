@@ -5,9 +5,11 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface RawSource {
-  url: string;
-  title: string;
-  content: string;
-  category?: string;
+export interface ScoreItem {
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  score?: number;
+  reason?: string;
 }

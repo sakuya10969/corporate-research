@@ -4,10 +4,8 @@
  * 企業分析エージェント API
  * OpenAPI spec version: 0.1.0
  */
+import type { SearchResult } from './searchResult';
 
-export interface RawSource {
-  url: string;
-  title: string;
-  content: string;
-  category?: string;
+export interface SearchResponse {
+  results: SearchResult[];
 }
