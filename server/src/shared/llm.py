@@ -1,23 +1,17 @@
-from azure.identity import ClientSecretCredential
-from langchain.chat_models import init_chat_model
-from langchain_core.language_models import BaseChatModel
+from agents import set_default_openai_api, set_default_openai_client, set_tracing_disabled
+from openai import AsyncAzureOpenAI
 
 from src.shared.config import get_settings
 
 
-def get_llm() -> BaseChatModel:
+def init_llm() -> None:
+    """アプリ起動時に一度だけ呼び出す。Azure OpenAI をデフォルトクライアントとして設定する。"""
     settings = get_settings()
-    credential = ClientSecretCredential(
-        tenant_id=settings.tenant_id,
-        client_id=settings.client_id,
-        client_secret=settings.client_secret,
+    client = AsyncAzureOpenAI(
+        azure_endpoint=settings.azure_openai_endpoint,
+        api_key=settings.azure_openai_api_key,
+        api_version=settings.api_version,
     )
-    return init_chat_model(
-        f"azure_ai:{settings.llm_model_name}",
-        project_endpoint=settings.azure_ai_project_endpoint,
-        credential=credential,
-        temperature=0,
-        max_tokens=None,
-        timeout=None,
-        max_retries=2,
-    )
+    set_default_openai_client(client, use_for_tracing=False)
+    set_default_openai_api("chat_completions")
+    set_tracing_disabled(True)

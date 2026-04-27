@@ -7,9 +7,12 @@ from fastapi.responses import JSONResponse
 from src.analysis.router import router as analysis_router
 from src.shared.config import get_settings
 from src.shared.exceptions import AnalysisError, CollectionError, ExternalServiceError
+from src.shared.llm import init_llm
 from src.shared.logger import logger
 
 app = FastAPI(title="企業分析エージェント API", version="0.1.0")
+
+init_llm()
 
 settings = get_settings()
 app.add_middleware(
