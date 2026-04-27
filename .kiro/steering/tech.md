@@ -29,12 +29,10 @@ inclusion: auto
 |---------|------|------|
 | フレームワーク | FastAPI | 0.136+ |
 | 言語 | Python | 3.14+ |
-| AI 基盤 | azure-ai-projects | Azure AI Foundry 接続 |
-| 認証 | azure-identity | Azure 認証 |
+| LLM フレームワーク | openai-agents（OpenAI Agents SDK） | Agent / Runner によるLLM呼び出し |
+| OpenAI クライアント | openai | AsyncAzureOpenAI 経由でAzure OpenAIに接続 |
 | Web スクレイピング | beautifulsoup4 + lxml | HTML パース |
 | HTTP クライアント | httpx | 非同期対応 |
-| LLM フレームワーク | langchain + langchain-azure-ai | AI チェーン構築 |
-| ワークフロー（将来） | langgraph | MVP では未使用、依存のみ保持 |
 | 設定管理 | pydantic-settings | 環境変数管理 |
 | リンター / フォーマッター | Ruff | dev dependency |
 
@@ -51,12 +49,12 @@ inclusion: auto
 ## バックエンドの採用理由
 
 - FastAPI: 非同期対応、自動 OpenAPI スキーマ生成、Pydantic ベースの型安全性。フロントエンドとの OpenAPI 連携に最適。
-- LangChain: LLM 呼び出しのチェーン構築を抽象化。プロンプト管理、出力パーサー、チェーン合成が容易。
-- langchain-azure-ai: Azure AI Foundry のモデルを LangChain から直接利用するためのアダプター。
+- OpenAI Agents SDK（`openai-agents`）: `Agent`（プロンプト・モデル設定）と `Runner`（非同期実行）でLLM処理を構成。LangChainより軽量でシンプルなAPIを提供。
+- openai（`AsyncAzureOpenAI`）: Azure OpenAI エンドポイントへの接続。アプリ起動時に `set_default_openai_client()` でSDKに注入する。
 - httpx + BeautifulSoup + lxml: Web 情報収集のための非同期 HTTP クライアントと HTML パーサー。企業情報のスクレイピングに使用。
 - pydantic-settings: `.env` ファイルからの設定読み込みを型安全に行う。
 
-## Azure AI Foundry / LangChain / LangGraph の位置づけ
+## Azure OpenAI / OpenAI Agents SDK の位置づけ
 
 ```
 [ユーザー入力]
@@ -65,18 +63,20 @@ inclusion: auto
     ↓
 [情報収集モジュール] ← httpx + BeautifulSoup
     ↓
-[LangChain チェーン] ← langchain + langchain-azure-ai
+[OpenAI Agents SDK]
+  Agent(instructions=SYSTEM_PROMPT, model=deployment)
+  Runner.run(agent, user_message)
     ↓                    ↑
-    ↓              [Azure AI Foundry]
-    ↓              （LLM モデル提供）
+    ↓              [Azure OpenAI]
+    ↓              （AsyncAzureOpenAI）
 [構造化された分析結果]
     ↓
 [フロントエンドへ返却]
 ```
 
-- Azure AI Foundry: LLM モデルのホスティング・提供基盤。langchain-azure-ai 経由でアクセス。
-- LangChain: MVP では単一チェーン（収集→要約→分析）として使用。プロンプトテンプレート、出力パーサーを活用。
-- LangGraph: MVP では未使用。依存には含めておき、将来的にマルチステップワークフロー（条件分岐、リトライ、並列実行）が必要になった段階で導入。LangChain のチェーンから LangGraph のグラフへの移行が自然にできるよう、処理単位をモジュール化しておく。
+- Azure OpenAI: LLM モデルのホスティング・提供基盤。`AsyncAzureOpenAI` クライアントを `set_default_openai_client()` でSDKに注入して使用。
+- OpenAI Agents SDK: MVP では `extraction_agent`（構造化抽出）と `summary_agent`（要約・スコアリング）の2エージェントで分析パイプラインを構成。
+- LangGraph: 現時点では未採用。将来の差分更新（F-006）・深掘り分析（F-007）での状態付きワークフロー導入時に検討。
 
 ## OpenAPI + Orval による型・APIクライアント自動生成方針
 
@@ -112,7 +112,7 @@ inclusion: auto
 
 | 技術 / 機能 | 理由 |
 |------------|------|
-| LangGraph（本格運用） | MVP のフローは単純なチェーンで十分。依存のみ保持 |
+| LangChain / LangGraph | OpenAI Agents SDKに移行済み。LangGraphは将来のF-006/F-007で再検討 |
 | RAG / ベクトルDB | MVP は Web 情報収集ベース。社内ナレッジ統合は Phase 6 以降 |
 | 認証・認可 | MVP はシングルユーザー前提 |
 | グローバル状態管理（Zustand 等） | React Query + useState で十分 |

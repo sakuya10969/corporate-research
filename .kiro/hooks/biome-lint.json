@@ -1,0 +1,13 @@
+{
+  "name": "Biome Lint on Save",
+  "version": "1.0.0",
+  "description": "フロントエンドのTS/TSXファイル保存時にBiomeでlint/formatチェックを実行し、問題があれば修正を促す",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["client/src/**/*.ts", "client/src/**/*.tsx"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "client/src 配下のTypeScriptファイルが変更されました。\n\nBiomeのlint/formatルールに違反していないか確認してください：\n1. FSDのレイヤ依存ルール違反がないか（app→widgets→features→entities→shared の方向のみ許可）\n2. `client/src/shared/api/generated/` 配下のファイルは編集禁止（Orval自動生成物）\n3. コンポーネントはPascalCase、ユーティリティはcamelCase の命名規則に従っているか\n\n問題がある場合のみ指摘してください。問題がなければ何もしないでください。"
+  }
+}

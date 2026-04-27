@@ -1,0 +1,13 @@
+{
+  "name": "Orval Regen on Schema Change",
+  "version": "1.0.0",
+  "description": "FastAPIのPydanticスキーマ変更時にOrvalでAPIクライアントを再生成するよう促す",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["server/src/**/*.py"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "server/src 配下のPythonファイルが変更されました。FastAPIのPydanticスキーマ（schemas.py）やルーター（router.py）に変更があった場合、フロントエンドのAPIクライアントが古くなっている可能性があります。\n\n変更内容を確認し、以下が必要かどうか判断してください：\n1. `server/src/analysis/schemas.py` や `server/src/*/router.py` に変更があったか\n2. 変更があった場合、ユーザーに `cd client && npx orval` の実行を促す\n3. 生成物は `client/src/shared/api/generated/` に出力される（編集禁止）\n\n必要な場合のみ案内してください。不要な場合は何もしないでください。"
+  }
+}

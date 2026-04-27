@@ -1,0 +1,12 @@
+{
+  "name": "Plan-First Reminder",
+  "version": "1.0.0",
+  "description": "エージェント実行開始時にAGENTS.mdのPlan-Firstルールを遵守するようリマインドする",
+  "when": {
+    "type": "promptSubmit"
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "cat AGENTS.md"
+  }
+}

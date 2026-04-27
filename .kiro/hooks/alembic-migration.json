@@ -1,0 +1,13 @@
+{
+  "name": "Alembic Migration Reminder",
+  "version": "1.0.0",
+  "description": "DBモデル（models.py）変更時にAlembicマイグレーションの生成を促す",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["server/src/db/models.py"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "server/src/db/models.py が変更されました。SQLAlchemyのORMモデルに変更があった場合、Alembicマイグレーションが必要です。\n\n変更内容を確認し、以下が必要かどうか判断してください：\n1. テーブル・カラムの追加・変更・削除があったか\n2. 変更があった場合、ユーザーに以下のコマンド実行を促す：\n   ```\n   cd server\n   uv run alembic revision --autogenerate -m \"<変更内容の説明>\"\n   uv run alembic upgrade head\n   ```\n3. マイグレーションファイルは `server/alembic/versions/` に生成される\n4. 自動生成されたマイグレーションは必ず内容を確認してから適用すること\n\n必要な場合のみ案内してください。不要な場合は何もしないでください。"
+  }
+}

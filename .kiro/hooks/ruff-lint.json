@@ -1,0 +1,13 @@
+{
+  "name": "Ruff Lint on Save",
+  "version": "1.0.0",
+  "description": "サーバーのPythonファイル保存時にRuffのlint/formatルール違反を検知して修正を促す",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["server/src/**/*.py", "server/main.py"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "server/ 配下のPythonファイルが変更されました。以下のRuff・コーディング規約に違反していないか確認してください：\n\n1. インポート順序（標準ライブラリ → サードパーティ → ローカル）\n2. 未使用インポートがないか\n3. 型アノテーションが適切に付いているか（関数の引数・戻り値）\n4. `from __future__ import annotations` が各ファイル先頭にあるか\n5. モジュール間の依存方向が正しいか（`shared` は他モジュールを参照しない）\n6. 例外は `src/shared/exceptions.py` の定義済み例外を使っているか\n\n問題がある場合のみ指摘してください。問題がなければ何もしないでください。"
+  }
+}
