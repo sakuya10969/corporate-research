@@ -25,8 +25,8 @@
 |------|------|
 | FastAPI | 非同期API、OpenAPIスキーマ自動生成 |
 | Python 3.14+ | — |
-| LangChain + langchain-azure-ai | LLMチェーン構築 |
-| Azure AI Foundry | LLMモデルホスティング基盤 |
+| openai-agents（OpenAI Agents SDK） | Agent / Runner によるLLM呼び出し |
+| openai（AsyncAzureOpenAI） | Azure OpenAI エンドポイント接続 |
 | httpx + BeautifulSoup | 非同期Web情報収集・HTMLパース |
 | pydantic-settings | 型安全な設定管理 |
 | Ruff | リンター / フォーマッター |
@@ -134,7 +134,15 @@ bun run generate    # Orval API クライアント生成
 
 | メソッド | パス | 説明 |
 |---------|------|------|
-| POST | `/api/analysis` | 企業分析を実行（リクエスト: `{ "company_url": "https://example.co.jp/" }`） |
+| POST | `/api/analysis` | 企業分析を実行 |
+| GET | `/api/analysis/{result_id}` | 分析結果を取得 |
+| GET | `/api/analysis/{result_id}/download` | PDF / Word ダウンロード（`?format=pdf\|docx`） |
+| POST | `/api/analysis/{result_id}/share` | 共有リンクを発行 |
+| GET | `/api/share/{share_id}` | 共有リンクから分析結果を取得 |
+| GET | `/api/companies/{company_id}/runs` | 分析履歴一覧 |
+| POST | `/api/companies/{company_id}/deep-research` | 深掘り分析（保存済みデータ前提） |
+| GET | `/api/search` | 企業名からURL候補を検索（`?q=企業名`） |
+| POST | `/api/compare` | 複数企業の比較分析（最大3社） |
 | GET | `/api/health` | ヘルスチェック |
 
 OpenAPI ドキュメント: http://localhost:8000/docs
@@ -142,7 +150,8 @@ OpenAPI ドキュメント: http://localhost:8000/docs
 ## アーキテクチャ
 
 - フロントエンド: [Feature-Sliced Design（FSD）](https://feature-sliced.design/) に基づくレイヤ構成
-- バックエンド: モジュラーモノリス。将来の LangGraph 導入を見据えた設計
+- バックエンド: モジュラーモノリス。`analysis` / `collector` / `shared` の3モジュール構成
+- LLM: OpenAI Agents SDK（`openai-agents`）の `Agent` + `Runner` で2エージェントパイプラインを構成
 - API連携: FastAPI の OpenAPI スキーマ → Orval で TypeScript クライアント + React Query フックを自動生成
 
 ### 分析フロー
@@ -150,9 +159,9 @@ OpenAPI ドキュメント: http://localhost:8000/docs
 ```
 企業URL入力 → サイト情報収集（サイトマップ/内部リンク探索）
   → 構造保持テキスト抽出・ページ分類
-  → Stage 1: LLM 構造化抽出（企業プロフィール、財務、ニュース等）
-  → Stage 2: LLM 要約・SWOT分析・競合推定
-  → Markdownレポート生成
+  → extraction_agent: 構造化抽出（企業プロフィール、財務、ニュース等）
+  → summary_agent: 要約・SWOT分析・競合推定・スコアリング
+  → Markdownレポート生成 + DB永続化
   → 構造化された分析結果を返却
 ```
 
