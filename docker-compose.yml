@@ -1,7 +1,7 @@
 services:
   db:
     image: pgvector/pgvector:pg17
-    container_name: postgres_db
+    container_name: corporate-research
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
