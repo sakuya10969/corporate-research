@@ -1,0 +1,20 @@
+{
+  "enabled": true,
+  "name": "Sync Docs on Save",
+  "description": "ソースコードの編集・保存後に、.kiro/steering/、docs/、README.md、DESIGN.md などの関連ドキュメントを確認し、変更内容に応じて自動的に更新する",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.py",
+      "**/*.ts",
+      "**/*.tsx",
+      "**/Makefile",
+      "**/docker-compose.yml"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "編集されたファイルの変更内容を確認し、以下の関連ドキュメントに影響がないか判断してください。影響がある場合のみ、該当ドキュメントを更新してください。影響がない場合は何もしないでください。\n\n対象ドキュメント:\n- .kiro/steering/ 配下のファイル\n- docs/ 配下のファイル\n- README.md\n- DESIGN.md\n- AGENTS.md\n\n更新ルール:\n1. まず変更されたファイルの差分を確認する\n2. 各ドキュメントを読み、変更内容と関連する記述があるか確認する\n3. 関連がある場合のみ、既存の記述スタイルに合わせて最小限の更新を行う\n4. 新しいAPI、設定、アーキテクチャ変更など、ドキュメントに反映すべき内容に限定する\n5. 軽微なリファクタリングやバグ修正ではドキュメント更新は不要"
+  }
+}

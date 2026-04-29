@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "Biome Format on Save",
+  "description": "client/ 配下の TypeScript/TSX ファイルが保存されたとき、Biome でフォーマットチェックとリント修正を自動実行します。",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "client/src/**/*.ts",
+      "client/src/**/*.tsx"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "保存されたファイルに対して `cd client && npx @biomejs/biome check --fix --unsafe` を実行し、フォーマットエラーやリントエラーがあれば修正してください。"
+  }
+}

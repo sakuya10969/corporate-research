@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Ruff Format on Save",
+  "description": "server/ 配下の Python ファイルが保存されたとき、Ruff でフォーマット整形とリント修正を自動実行します。",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "server/src/**/*.py"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "保存されたファイルに対して `cd server && uv run ruff format src/ && uv run ruff check --fix src/` を実行し、フォーマットエラーやリントエラーがあれば修正してください。"
+  }
+}
