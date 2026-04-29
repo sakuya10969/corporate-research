@@ -9,6 +9,7 @@ import {
 } from "@mantine/core";
 import { QueryProvider } from "./query-provider";
 import { ClerkProvider } from "@clerk/nextjs";
+import { jaJP } from "@clerk/localizations";
 
 const theme = createTheme({
   primaryColor: "blue",
@@ -40,7 +41,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
+    <ClerkProvider localization={jaJP}>
       <html lang="ja" {...mantineHtmlProps}>
         <head>
           <ColorSchemeScript forceColorScheme="light" />
