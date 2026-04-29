@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import time
-import uuid
 from datetime import datetime, timezone
 
 from agents import Agent, ModelSettings, Runner
@@ -33,11 +32,12 @@ from src.analysis.schemas import (
 )
 from src.collector.service import collect_company_info
 from src.db.models import AnalysisResult as AnalysisResultModel
-from src.db.models import AnalysisRun
+from src.db.models import AnalysisResultSource, AnalysisRun
 from src.db.repository import (
     AnalysisResultRepository,
     AnalysisRunRepository,
     CompanyRepository,
+    PageRepository,
 )
 from src.shared.config import get_settings
 from src.shared.exceptions import AnalysisError, CollectionError, ExternalServiceError
@@ -53,38 +53,66 @@ async def analyze_company(request: AnalysisRequest, session: AsyncSession) -> An
     company_repo = CompanyRepository(session)
     result_repo = AnalysisResultRepository(session)
     run_repo = AnalysisRunRepository(session)
+    page_repo = PageRepository(session)
 
     # --- キャッシュチェック ---
-    company = await company_repo.find_by_url(request.company_url)
-    if company and not request.force_refresh:
-        cached = await result_repo.find_latest_by_company(company.company_id)
+    existing_company = await company_repo.find_by_url(request.company_url)
+    if existing_company and not request.force_refresh:
+        cached = await result_repo.find_latest_by_company(existing_company.company_id)
         if cached:
             logger.info("キャッシュヒット: {}", request.company_url)
             return _model_to_response(cached, is_cached=True)
 
+    company = existing_company or await company_repo.upsert(request.company_url)
+
     # --- run 作成 ---
-    run_type = "refresh" if (company and request.force_refresh) else "initial"
+    run_type = "refresh" if (existing_company and request.force_refresh) else "initial"
     run = AnalysisRun(
-        company_id=company.company_id if company else uuid.uuid4(),  # 仮ID、後で更新
+        company_id=company.company_id,
         run_type=run_type,
         template=request.template,
         status="running",
         started_at=datetime.now(timezone.utc),
         force_refresh=request.force_refresh,
+        input_params={
+            "company_url": request.company_url,
+            "template": request.template,
+            "force_refresh": request.force_refresh,
+        },
     )
+    run = await run_repo.create(run)
 
     # --- 情報収集 ---
     try:
         company_info = await collect_company_info(request.company_url)
-    except CollectionError:
+    except CollectionError as exc:
+        await run_repo.update_status(
+            run,
+            "failed",
+            error_code="COLLECTION_ERROR",
+            error_message=str(exc),
+        )
+        await session.commit()
         raise
 
     logger.info("情報収集完了: {} 件のソース", len(company_info.sources))
     start_ms = time.monotonic()
 
     # --- LLM 処理 ---
-    structured = await _extract_structured(request.company_url, company_info.raw_content)
-    summary, scores = await _generate_summary_and_scores(request.company_url, structured, request.template)
+    try:
+        structured = await _extract_structured(request.company_url, company_info.raw_content)
+        summary, scores = await _generate_summary_and_scores(
+            request.company_url, structured, request.template
+        )
+    except AnalysisError as exc:
+        await run_repo.update_status(
+            run,
+            "failed",
+            error_code="ANALYSIS_ERROR",
+            error_message=str(exc),
+        )
+        await session.commit()
+        raise
 
     elapsed_ms = int((time.monotonic() - start_ms) * 1000)
 
@@ -103,24 +131,39 @@ async def analyze_company(request: AnalysisRequest, session: AsyncSession) -> An
 
     # 差分レポート（refresh時）
     diff_report = ""
-    if run_type == "refresh" and company:
+    if run_type == "refresh" and existing_company:
         prev = await result_repo.find_latest_by_company(company.company_id)
         if prev:
             diff_report = generate_diff_report(structured_dict, prev.structured)
 
-    # --- 永続化 ---
-    company = await company_repo.upsert(
-        request.company_url,
-        name=structured.company_profile.name or None,
-    )
+    if structured.company_profile.name:
+        company.display_name = structured.company_profile.name
 
-    # カテゴリ別ページ数
+    # カテゴリ別ページ数とページ資産の保存
     source_categories: dict[str, int] = {}
+    page_versions = []
     for s in company_info.sources:
         source_categories[s.category] = source_categories.get(s.category, 0) + 1
+        page = await page_repo.get_or_create_page(
+            company.company_id,
+            s.url,
+            page_type=s.category,
+            title=s.title,
+        )
+        version = await page_repo.add_version(
+            page,
+            extracted_text=s.content,
+            fetched_at=datetime.now(timezone.utc),
+            fetch_run_id=run.run_id,
+            title=s.title,
+            metadata=s.meta,
+        )
+        page_versions.append((s, version))
+    company.last_page_crawl_at = datetime.now(timezone.utc)
 
     result_model = AnalysisResultModel(
         company_id=company.company_id,
+        run_id=run.run_id,
         template=request.template,
         llm_model=settings.azure_deployment,
         llm_api_version=settings.api_version,
@@ -131,16 +174,35 @@ async def analyze_company(request: AnalysisRequest, session: AsyncSession) -> An
         sources=sources_dict,
         raw_sources=[s.model_dump() for s in raw_sources],
         pages_used=len(sources),
-        source_categories=source_categories,
         markdown_page=markdown_page,
-        processing_ms=elapsed_ms,
+        quality_metrics={
+            "processing_ms": elapsed_ms,
+            "source_categories": source_categories,
+        },
     )
     result_model = await result_repo.save(result_model)
 
-    run.company_id = company.company_id
-    run.pages_fetched = len(sources)
-    run = await run_repo.create(run)
-    await run_repo.update_status(run, "completed", result_id=result_model.result_id)
+    for index, (source, version) in enumerate(page_versions):
+        session.add(
+            AnalysisResultSource(
+                result_id=result_model.result_id,
+                page_version_id=version.page_version_id,
+                source_order=index,
+                page_category=source.category,
+                citation_title=source.title,
+                snippet=source.content[:500],
+                citation_metadata=source.meta,
+            )
+        )
+
+    await run_repo.update_status(
+        run,
+        "completed",
+        collection_summary={
+            "pages_fetched": len(sources),
+            "source_categories": source_categories,
+        },
+    )
 
     await session.commit()
 
@@ -170,7 +232,7 @@ def _model_to_response(model: AnalysisResultModel, is_cached: bool = False) -> A
     sources = [SourceInfo.model_validate(s) for s in (model.sources or [])]
     raw_sources = [RawSource.model_validate(s) for s in (model.raw_sources or [])]
     return AnalysisResponse(
-        company_url=model.company.url if model.company else "",
+        company_url=model.company.primary_url if model.company else "",
         result_id=model.result_id,
         company_id=model.company_id,
         is_cached=is_cached,

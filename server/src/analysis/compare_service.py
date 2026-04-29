@@ -12,7 +12,6 @@ from src.analysis.prompts import COMPARISON_HUMAN, COMPARISON_SYSTEM
 from src.analysis.schemas import AnalysisRequest, AnalysisResponse, CompareRequest, CompareResponse
 from src.analysis.service import analyze_company
 from src.shared.config import get_settings
-from src.shared.exceptions import AnalysisError
 from src.shared.logger import logger
 
 

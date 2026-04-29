@@ -7,17 +7,20 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Text, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.db.models.base import Base
 
 if TYPE_CHECKING:
+    from src.db.models.analysis_result import AnalysisResult
     from src.db.models.company import Company
+    from src.db.models.page_snapshot import PageVersion
+    from src.db.models.user import User
 
 
 class AnalysisRun(Base):
-    """分析実行履歴"""
+    """分析の実行単位。入力条件と実行状態を保持する。"""
 
     __tablename__ = "analysis_runs"
 
@@ -29,34 +32,30 @@ class AnalysisRun(Base):
         ForeignKey("companies.company_id", ondelete="CASCADE"),
         nullable=False,
     )
-    result_id: Mapped[uuid.UUID | None] = mapped_column(
+    requested_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("analysis_results.result_id", ondelete="SET NULL"),
+        ForeignKey("users.user_id", ondelete="SET NULL"),
         nullable=True,
+        index=True,
     )
 
-    # 実行種別
-    run_type: Mapped[str] = mapped_column(Text, nullable=False)  # initial / refresh / deep_research
+    run_type: Mapped[str] = mapped_column(Text, nullable=False)
     template: Mapped[str] = mapped_column(Text, nullable=False, default="general")
-
-    # ステータス管理
     status: Mapped[str] = mapped_column(Text, nullable=False, default="pending")
+
+    force_refresh: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    input_params: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    collection_summary: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+
     error_code: Mapped[str | None] = mapped_column(Text, nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     retry_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     parent_run_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("analysis_runs.run_id"),
+        ForeignKey("analysis_runs.run_id", ondelete="SET NULL"),
         nullable=True,
     )
 
-    # 実行メタデータ
-    triggered_by: Mapped[str] = mapped_column(Text, nullable=False, default="user")
-    force_refresh: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    request_ip: Mapped[str | None] = mapped_column(Text, nullable=True)
-    user_agent: Mapped[str | None] = mapped_column(Text, nullable=True)
-
-    # タイミング
     started_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
@@ -64,11 +63,6 @@ class AnalysisRun(Base):
         DateTime(timezone=True), nullable=True
     )
     duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
-
-    # 収集サマリー
-    pages_fetched: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    pages_changed: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    pages_skipped: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
@@ -80,5 +74,13 @@ class AnalysisRun(Base):
         onupdate=func.now(),
     )
 
-    # リレーション
     company: Mapped["Company"] = relationship("Company", back_populates="analysis_runs")
+    requested_by_user: Mapped["User | None"] = relationship(
+        "User", back_populates="analysis_runs"
+    )
+    result: Mapped["AnalysisResult | None"] = relationship(
+        "AnalysisResult", back_populates="run", uselist=False
+    )
+    page_versions: Mapped[list["PageVersion"]] = relationship(
+        "PageVersion", back_populates="fetch_run"
+    )

@@ -19,12 +19,11 @@ from src.analysis.schemas import (
     SearchResponse,
 )
 from src.analysis.service import analyze_company
-from src.db.repository import AnalysisResultRepository, AnalysisRunRepository, CompanyRepository
+from src.db.repository import AnalysisResultRepository, AnalysisRunRepository
 from src.deep_research.service import ask_deep_research
 from src.download.generator import generate_docx, generate_pdf
 from src.search.service import search_company_url
 from src.shared.db import get_session
-from src.shared.exceptions import AnalysisError
 
 router = APIRouter()
 
@@ -110,7 +109,7 @@ async def get_company_runs(company_id: uuid.UUID, session: SessionDep) -> Histor
                 completed_at=r.completed_at,
                 duration_ms=r.duration_ms,
                 error_message=r.error_message,
-                result_id=r.result_id,
+                result_id=r.result.result_id if r.result else None,
             )
             for r in runs
         ],

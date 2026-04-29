@@ -7,7 +7,6 @@ from datetime import date
 
 import markdown as md
 from docx import Document
-from docx.shared import Pt
 from weasyprint import HTML
 
 from src.db.models import AnalysisResult

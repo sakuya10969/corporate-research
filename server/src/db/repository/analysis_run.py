@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from src.db.models import AnalysisRun
 
@@ -24,18 +25,18 @@ class AnalysisRunRepository:
         self,
         run: AnalysisRun,
         status: str,
-        result_id: uuid.UUID | None = None,
         error_code: str | None = None,
         error_message: str | None = None,
+        collection_summary: dict | None = None,
     ) -> AnalysisRun:
         run.status = status
-        if result_id:
-            run.result_id = result_id
         if error_code:
             run.error_code = error_code
         if error_message:
             run.error_message = error_message
-        if status in ("completed", "failed"):
+        if collection_summary is not None:
+            run.collection_summary = collection_summary
+        if status in ("completed", "failed", "cancelled"):
             run.completed_at = datetime.now(timezone.utc)
             if run.started_at:
                 run.duration_ms = int(
@@ -44,9 +45,12 @@ class AnalysisRunRepository:
         await self._s.flush()
         return run
 
-    async def list_by_company(self, company_id: uuid.UUID, limit: int = 50) -> list[AnalysisRun]:
+    async def list_by_company(
+        self, company_id: uuid.UUID, limit: int = 50
+    ) -> list[AnalysisRun]:
         res = await self._s.execute(
             select(AnalysisRun)
+            .options(selectinload(AnalysisRun.result))
             .where(AnalysisRun.company_id == company_id)
             .order_by(AnalysisRun.created_at.desc())
             .limit(limit)

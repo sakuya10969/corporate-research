@@ -3,15 +3,13 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-
 from agents import Agent, ModelSettings, Runner
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.analysis.prompts import DEEP_RESEARCH_SYSTEM
 from src.analysis.schemas import StructuredData, SummaryData
 from src.db.models import DeepResearchMessage, DeepResearchSession
-from src.db.repository import AnalysisResultRepository
+from src.db.repository import AnalysisResultRepository, DeepResearchRepository
 from src.shared.config import get_settings
 from src.shared.exceptions import AnalysisError
 from src.shared.logger import logger
@@ -27,6 +25,7 @@ async def ask_deep_research(
     """深掘り質問に回答し、セッション・メッセージを DB に保存する"""
     settings = get_settings()
     result_repo = AnalysisResultRepository(db)
+    deep_research_repo = DeepResearchRepository(db)
 
     # 分析結果を取得
     if result_id:
@@ -48,22 +47,17 @@ async def ask_deep_research(
 
     # セッション取得 or 作成
     if session_id:
-        from sqlalchemy import select
-        res = await db.execute(
-            select(DeepResearchSession).where(DeepResearchSession.session_id == session_id)
-        )
-        dr_session = res.scalar_one_or_none()
+        dr_session = await deep_research_repo.find_session(session_id)
     else:
         dr_session = None
 
     if not dr_session:
         dr_session = DeepResearchSession(
             company_id=company_id,
-            result_id=result_id or result.result_id,
+            base_result_id=result_id or result.result_id,
             status="active",
         )
-        db.add(dr_session)
-        await db.flush()
+        await deep_research_repo.save_session(dr_session)
 
     # メッセージ数取得
     from sqlalchemy import func, select
@@ -100,7 +94,8 @@ async def ask_deep_research(
         session_id=dr_session.session_id,
         role="assistant",
         content=answer,
-        used_cached_data=True,
+        model_name=settings.azure_deployment,
+        retrieval_context={"used_cached_analysis_result": True},
         sequence=msg_count + 1,
     )
     db.add(assistant_msg)

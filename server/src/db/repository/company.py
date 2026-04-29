@@ -17,10 +17,12 @@ class CompanyRepository:
 
     @staticmethod
     def _normalize(url: str) -> tuple[str, str]:
-        """(normalized_url, domain) を返す"""
+        """(normalized_url, domain) を返す。企業識別はホスト単位に寄せる。"""
         p = urlparse(url.strip())
-        scheme = p.scheme or "https"
-        domain = p.netloc
+        scheme = (p.scheme or "https").lower()
+        domain = p.netloc.lower().strip()
+        if domain.startswith("www."):
+            domain = domain[4:]
         return f"{scheme}://{domain}", domain
 
     async def find_by_url(self, url: str) -> Company | None:
@@ -30,25 +32,32 @@ class CompanyRepository:
         )
         return result.scalar_one_or_none()
 
+    async def find_by_id(self, company_id) -> Company | None:
+        result = await self._s.execute(
+            select(Company).where(Company.company_id == company_id)
+        )
+        return result.scalar_one_or_none()
+
     async def upsert(self, url: str, name: str | None = None) -> Company:
         normalized, domain = self._normalize(url)
         company = await self.find_by_url(url)
         now = datetime.now(timezone.utc)
         if company is None:
             company = Company(
-                url=url,
+                primary_url=url,
                 normalized_url=normalized,
-                domain=domain,
-                name=name,
-                first_crawled_at=now,
-                last_crawled_at=now,
-                crawl_count=1,
+                primary_domain=domain,
+                display_name=name,
+                first_analyzed_at=now,
+                last_analyzed_at=now,
+                analysis_count=1,
             )
             self._s.add(company)
         else:
-            company.last_crawled_at = now
-            company.crawl_count += 1
+            company.primary_url = url
+            company.last_analyzed_at = now
+            company.analysis_count += 1
             if name:
-                company.name = name
+                company.display_name = name
         await self._s.flush()
         return company
