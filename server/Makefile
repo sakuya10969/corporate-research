@@ -1,6 +1,6 @@
 UV ?= uv run
 
-.PHONY: dev lint lint-fix format format-check check openapi \
+.PHONY: dev lint lint-fix format format-check imports imports-check fix check openapi \
         migrate upgrade downgrade db-history
 
 # --- Dev ---
@@ -9,10 +9,10 @@ dev:
 
 # --- Lint / Format ---
 lint:
-	$(UV) ruff check .
+	$(UV) ruff check src/
 
 lint-fix:
-	$(UV) ruff check --fix .
+	$(UV) ruff check --fix src/
 
 format:
 	$(UV) ruff format src/
@@ -20,7 +20,15 @@ format:
 format-check:
 	$(UV) ruff format --check src/
 
-check: lint format-check
+imports:
+	$(UV) ruff check --select I --fix src/
+
+imports-check:
+	$(UV) ruff check --select I src/
+
+fix: lint-fix imports format
+
+check: lint format-check imports-check
 
 # --- OpenAPI ---
 openapi:
