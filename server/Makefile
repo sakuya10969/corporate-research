@@ -15,10 +15,10 @@ lint-fix:
 	$(UV) ruff check --fix .
 
 format:
-	$(UV) ruff format .
+	$(UV) ruff format src/
 
 format-check:
-	$(UV) ruff format --check .
+	$(UV) ruff format --check src/
 
 check: lint format-check
 
