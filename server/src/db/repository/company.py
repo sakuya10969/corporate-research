@@ -38,6 +38,13 @@ class CompanyRepository:
         )
         return result.scalar_one_or_none()
 
+    async def list_all(self) -> list[Company]:
+        """全企業を作成日時の降順で取得する。"""
+        result = await self._s.execute(
+            select(Company).order_by(Company.created_at.desc())
+        )
+        return list(result.scalars().all())
+
     async def upsert(self, url: str, name: str | None = None) -> Company:
         normalized, domain = self._normalize(url)
         company = await self.find_by_url(url)

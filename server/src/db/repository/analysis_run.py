@@ -21,6 +21,12 @@ class AnalysisRunRepository:
         await self._s.flush()
         return run
 
+    async def find_by_id(self, run_id: uuid.UUID) -> AnalysisRun | None:
+        result = await self._s.execute(
+            select(AnalysisRun).where(AnalysisRun.run_id == run_id)
+        )
+        return result.scalar_one_or_none()
+
     async def update_status(
         self,
         run: AnalysisRun,
