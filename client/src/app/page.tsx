@@ -2,8 +2,8 @@
 
 import { Anchor, Container, Group, Stack, Text, Title } from "@mantine/core";
 import { CompanySearchForm } from "@/features/company-search";
-import { AnalysisResult } from "@/widgets/analysis-result";
 import { usePostAnalysisApiAnalysisPost } from "@/shared/api";
+import { AnalysisResult } from "@/widgets/analysis-result";
 
 export default function Home() {
   const mutation = usePostAnalysisApiAnalysisPost();
@@ -12,7 +12,9 @@ export default function Home() {
     <Container size={960} py="xl">
       <Stack gap="xl">
         <Stack gap="xs" ta="center">
-          <Title order={1} c="#1E293B">企業分析エージェント</Title>
+          <Title order={1} c="#1E293B">
+            企業分析エージェント
+          </Title>
           <Text c="#64748B" size="md">
             企業URLを入力するだけで、公開情報を自動収集・分析します
           </Text>
@@ -39,7 +41,9 @@ export default function Home() {
         />
 
         <Group justify="center" gap="md">
-          <Anchor href="/compare" size="sm" c="#2563EB">複数企業を比較する →</Anchor>
+          <Anchor href="/compare" size="sm" c="#2563EB">
+            複数企業を比較する →
+          </Anchor>
         </Group>
       </Stack>
     </Container>

@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "@mantine/core/styles.css";
+import { jaJP } from "@clerk/localizations";
+import { ClerkProvider } from "@clerk/nextjs";
 import {
   ColorSchemeScript,
-  MantineProvider,
   createTheme,
+  MantineProvider,
   mantineHtmlProps,
 } from "@mantine/core";
 import { QueryProvider } from "./query-provider";
-import { ClerkProvider } from "@clerk/nextjs";
-import { jaJP } from "@clerk/localizations";
 
 const theme = createTheme({
   primaryColor: "blue",

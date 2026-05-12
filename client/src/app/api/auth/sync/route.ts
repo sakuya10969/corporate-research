@@ -23,10 +23,7 @@ export async function POST() {
 
   const token = await getToken();
   if (!token) {
-    return NextResponse.json(
-      { error: "Failed to get token" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to get token" }, { status: 500 });
   }
 
   const apiBaseUrl =
@@ -45,7 +42,7 @@ export async function POST() {
     const detail = await res.text();
     return NextResponse.json(
       { error: "Sync failed", detail },
-      { status: res.status }
+      { status: res.status },
     );
   }
 

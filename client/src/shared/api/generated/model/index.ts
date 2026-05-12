@@ -5,10 +5,14 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './analysisHistoryResponse';
 export * from './analysisRequest';
 export * from './analysisRequestTemplate';
 export * from './analysisResponse';
+export * from './companyDetailResponse';
+export * from './companyListResponse';
 export * from './companyProfile';
+export * from './companyResponse';
 export * from './compareRequest';
 export * from './compareRequestTemplate';
 export * from './compareResponse';
@@ -23,7 +27,9 @@ export * from './newsItem';
 export * from './postDeepResearchApiCompaniesCompanyIdDeepResearchPost200';
 export * from './postDeepResearchApiCompaniesCompanyIdDeepResearchPostBody';
 export * from './rawSource';
+export * from './registerCompanyRequest';
 export * from './riskItem';
+export * from './runStatusResponse';
 export * from './runSummary';
 export * from './scoreData';
 export * from './scoreItem';
@@ -31,6 +37,7 @@ export * from './searchCompanyApiSearchGetParams';
 export * from './searchResponse';
 export * from './searchResult';
 export * from './sourceInfo';
+export * from './startAnalysisRequest';
 export * from './structuredData';
 export * from './summaryData';
 export * from './swotAnalysis';

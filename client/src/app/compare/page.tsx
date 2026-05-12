@@ -12,17 +12,31 @@ import {
 } from "@mantine/core";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { useState } from "react";
-import { usePostCompareApiComparePost } from "@/shared/api";
-import type { AnalysisResponse } from "@/shared/api";
 import { CompanyCard } from "@/entities/company";
+import type { AnalysisResponse } from "@/shared/api";
+import { usePostCompareApiComparePost } from "@/shared/api";
+
+let nextId = 0;
+function genId() {
+  return ++nextId;
+}
 
 export default function ComparePage() {
-  const [urls, setUrls] = useState(["", ""]);
+  const [entries, setEntries] = useState(() => [
+    { id: genId(), url: "" },
+    { id: genId(), url: "" },
+  ]);
   const mutation = usePostCompareApiComparePost();
 
-  const addUrl = () => { if (urls.length < 3) setUrls([...urls, ""]); };
-  const removeUrl = (i: number) => setUrls(urls.filter((_, idx) => idx !== i));
-  const updateUrl = (i: number, v: string) => setUrls(urls.map((u, idx) => idx === i ? v : u));
+  const urls = entries.map((e) => e.url);
+
+  const addUrl = () => {
+    if (entries.length < 3) setEntries([...entries, { id: genId(), url: "" }]);
+  };
+  const removeUrl = (i: number) =>
+    setEntries(entries.filter((_, idx) => idx !== i));
+  const updateUrl = (i: number, v: string) =>
+    setEntries(entries.map((e, idx) => (idx === i ? { ...e, url: v } : e)));
 
   const handleCompare = () => {
     const valid = urls.filter((u) => /^https?:\/\//.test(u));
@@ -36,34 +50,50 @@ export default function ComparePage() {
     <Container size={1200} py="xl">
       <Stack gap="xl">
         <Stack gap="xs" ta="center">
-          <Title order={1} c="#1E293B">複数企業比較</Title>
+          <Title order={1} c="#1E293B">
+            複数企業比較
+          </Title>
           <Text c="#64748B">最大3社の企業を並べて比較分析します</Text>
         </Stack>
 
         <Stack gap="sm">
-          {urls.map((url, i) => (
-            <Group key={i} gap="sm">
+          {entries.map((entry, i) => (
+            <Group key={entry.id} gap="sm">
               <TextInput
                 placeholder={`企業URL ${i + 1}`}
-                value={url}
+                value={entry.url}
                 onChange={(e) => updateUrl(i, e.currentTarget.value)}
                 style={{ flex: 1 }}
                 disabled={mutation.isPending}
               />
-              {urls.length > 2 && (
-                <Button variant="subtle" color="red" size="sm" onClick={() => removeUrl(i)}>
+              {entries.length > 2 && (
+                <Button
+                  variant="subtle"
+                  color="red"
+                  size="sm"
+                  onClick={() => removeUrl(i)}
+                >
                   <IconTrash size={16} />
                 </Button>
               )}
             </Group>
           ))}
           <Group gap="sm">
-            {urls.length < 3 && (
-              <Button variant="light" leftSection={<IconPlus size={16} />} onClick={addUrl} size="sm">
+            {entries.length < 3 && (
+              <Button
+                variant="light"
+                leftSection={<IconPlus size={16} />}
+                onClick={addUrl}
+                size="sm"
+              >
                 企業を追加
               </Button>
             )}
-            <Button onClick={handleCompare} loading={mutation.isPending} disabled={urls.filter((u) => /^https?:\/\//.test(u)).length < 2}>
+            <Button
+              onClick={handleCompare}
+              loading={mutation.isPending}
+              disabled={urls.filter((u) => /^https?:\/\//.test(u)).length < 2}
+            >
               比較分析する
             </Button>
           </Group>
@@ -84,8 +114,13 @@ export default function ComparePage() {
             {/* 企業名ヘッダー */}
             <Group grow gap="md">
               {results.map((r) => (
-                <CompanyCard key={r.company_url} title={r.structured?.company_profile?.name || r.company_url}>
-                  <Text size="xs" c="#2563EB">{r.company_url}</Text>
+                <CompanyCard
+                  key={r.company_url}
+                  title={r.structured?.company_profile?.name || r.company_url}
+                >
+                  <Text size="xs" c="#2563EB">
+                    {r.company_url}
+                  </Text>
                 </CompanyCard>
               ))}
             </Group>
@@ -96,7 +131,9 @@ export default function ComparePage() {
                 <CompanyCard key={r.company_url} title="事業領域">
                   <Group gap="xs">
                     {(r.structured?.business_domains ?? []).map((d) => (
-                      <Badge key={d} variant="light" color="blue" size="sm">{d}</Badge>
+                      <Badge key={d} variant="light" color="blue" size="sm">
+                        {d}
+                      </Badge>
                     ))}
                   </Group>
                 </CompanyCard>
@@ -108,8 +145,16 @@ export default function ComparePage() {
               {results.map((r) => (
                 <CompanyCard key={r.company_url} title="財務情報">
                   <Stack gap={2}>
-                    {r.structured?.financials?.revenue && <Text size="sm">売上: {r.structured.financials.revenue}</Text>}
-                    {r.structured?.financials?.growth_rate && <Text size="sm">成長率: {r.structured.financials.growth_rate}</Text>}
+                    {r.structured?.financials?.revenue && (
+                      <Text size="sm">
+                        売上: {r.structured.financials.revenue}
+                      </Text>
+                    )}
+                    {r.structured?.financials?.growth_rate && (
+                      <Text size="sm">
+                        成長率: {r.structured.financials.growth_rate}
+                      </Text>
+                    )}
                   </Stack>
                 </CompanyCard>
               ))}
@@ -121,11 +166,17 @@ export default function ComparePage() {
                 <CompanyCard key={r.company_url} title="SWOT">
                   <Stack gap="xs">
                     {(r.summary?.swot?.strengths ?? []).slice(0, 3).map((s) => (
-                      <Badge key={s} variant="light" color="green" size="sm">{s}</Badge>
+                      <Badge key={s} variant="light" color="green" size="sm">
+                        {s}
+                      </Badge>
                     ))}
-                    {(r.summary?.swot?.weaknesses ?? []).slice(0, 2).map((w) => (
-                      <Badge key={w} variant="light" color="red" size="sm">{w}</Badge>
-                    ))}
+                    {(r.summary?.swot?.weaknesses ?? [])
+                      .slice(0, 2)
+                      .map((w) => (
+                        <Badge key={w} variant="light" color="red" size="sm">
+                          {w}
+                        </Badge>
+                      ))}
                   </Stack>
                 </CompanyCard>
               ))}

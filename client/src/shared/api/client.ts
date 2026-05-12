@@ -9,7 +9,7 @@ import axios, { type AxiosInstance } from "axios";
  * Requirements: 3.1, 3.2
  */
 export function createAuthenticatedClient(
-  getToken: () => Promise<string | null>
+  getToken: () => Promise<string | null>,
 ): AxiosInstance {
   const instance = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000",

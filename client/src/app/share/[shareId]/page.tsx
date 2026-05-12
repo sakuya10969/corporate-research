@@ -9,7 +9,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: "企業分析レポート",
     description: `共有された企業分析レポート (${shareId})`,
-    openGraph: { title: "企業分析レポート", description: "企業分析エージェントによる分析結果" },
+    openGraph: {
+      title: "企業分析レポート",
+      description: "企業分析エージェントによる分析結果",
+    },
   };
 }
 
@@ -19,7 +22,9 @@ export default async function SharePage({ params }: Props) {
 
   let data = null;
   try {
-    const res = await fetch(`${apiUrl}/api/share/${shareId}`, { cache: "no-store" });
+    const res = await fetch(`${apiUrl}/api/share/${shareId}`, {
+      cache: "no-store",
+    });
     if (res.ok) data = await res.json();
   } catch {}
 
@@ -27,8 +32,12 @@ export default async function SharePage({ params }: Props) {
     <Container size={960} py="xl">
       <Stack gap="xl">
         <Stack gap="xs" ta="center">
-          <Title order={2} c="#1E293B">企業分析レポート</Title>
-          <Text c="#64748B" size="sm">このページは共有された分析結果です（読み取り専用）</Text>
+          <Title order={2} c="#1E293B">
+            企業分析レポート
+          </Title>
+          <Text c="#64748B" size="sm">
+            このページは共有された分析結果です（読み取り専用）
+          </Text>
         </Stack>
         <AnalysisResult data={data} isLoading={false} error={null} />
       </Stack>

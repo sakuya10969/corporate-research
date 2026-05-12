@@ -1,5 +1,5 @@
-import Axios from "axios";
 import type { AxiosRequestConfig } from "axios";
+import Axios from "axios";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 

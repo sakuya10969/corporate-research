@@ -10,14 +10,16 @@ import {
 } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import { IconRefresh, IconSearch } from "@tabler/icons-react";
+import { useState } from "react";
 import * as v from "valibot";
-import { useEffect, useState } from "react";
 import type { AnalysisResponse } from "@/shared/api";
 import { useSearchCompanyApiSearchGet } from "@/shared/api";
-import { companySearchSchema, type CompanySearchInput } from "../model/schema";
+import { type CompanySearchInput, companySearchSchema } from "../model/schema";
 
 type Props = {
-  onSubmit: (data: CompanySearchInput & { force_refresh?: boolean; template?: string }) => void;
+  onSubmit: (
+    data: CompanySearchInput & { force_refresh?: boolean; template?: string },
+  ) => void;
   loading?: boolean;
   cachedResult?: AnalysisResponse;
 };
@@ -40,7 +42,7 @@ export function CompanySearchForm({ onSubmit, loading, cachedResult }: Props) {
   const isUrl = /^https?:\/\//.test(debounced);
   const { data: searchData } = useSearchCompanyApiSearchGet(
     { q: debounced },
-    { query: { enabled: debounced.length >= 2 && !isUrl } }
+    { query: { enabled: debounced.length >= 2 && !isUrl } },
   );
   const suggestions = (searchData?.results ?? []).map((r) => ({
     value: r.url,
@@ -69,7 +71,11 @@ export function CompanySearchForm({ onSubmit, loading, cachedResult }: Props) {
         <Group
           justify="space-between"
           p="sm"
-          style={{ background: "#EFF6FF", borderRadius: 8, border: "1px solid #BFDBFE" }}
+          style={{
+            background: "#EFF6FF",
+            borderRadius: 8,
+            border: "1px solid #BFDBFE",
+          }}
         >
           <Text size="sm" c="#1D4ED8">
             前回分析: {analyzedAt}

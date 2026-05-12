@@ -24,10 +24,18 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AnalysisHistoryResponse,
+  AnalysisResponse,
+  CompanyDetailResponse,
+  CompanyListResponse,
+  CompanyResponse,
   HTTPValidationError,
   HistoryResponse,
   PostDeepResearchApiCompaniesCompanyIdDeepResearchPost200,
-  PostDeepResearchApiCompaniesCompanyIdDeepResearchPostBody
+  PostDeepResearchApiCompaniesCompanyIdDeepResearchPostBody,
+  RegisterCompanyRequest,
+  RunStatusResponse,
+  StartAnalysisRequest
 } from '../model';
 
 import { customInstance } from '../../instance';
@@ -191,3 +199,572 @@ export const usePostDeepResearchApiCompaniesCompanyIdDeepResearchPost = <TError 
       > => {
       return useMutation(getPostDeepResearchApiCompaniesCompanyIdDeepResearchPostMutationOptions(options), queryClient);
     }
+    /**
+ * 登録済み企業の一覧を返却する。
+ * @summary List Companies
+ */
+export const listCompaniesApiCompaniesGet = (
+
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<CompanyListResponse>(
+      {url: `/api/companies`, method: 'GET', signal
+    },
+      );
+    }
+
+
+
+
+export const getListCompaniesApiCompaniesGetQueryKey = () => {
+    return [
+    `/api/companies`
+    ] as const;
+    }
+
+
+export const getListCompaniesApiCompaniesGetQueryOptions = <TData = Awaited<ReturnType<typeof listCompaniesApiCompaniesGet>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCompaniesApiCompaniesGet>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCompaniesApiCompaniesGetQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCompaniesApiCompaniesGet>>> = ({ signal }) => listCompaniesApiCompaniesGet(signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCompaniesApiCompaniesGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListCompaniesApiCompaniesGetQueryResult = NonNullable<Awaited<ReturnType<typeof listCompaniesApiCompaniesGet>>>
+export type ListCompaniesApiCompaniesGetQueryError = unknown
+
+
+export function useListCompaniesApiCompaniesGet<TData = Awaited<ReturnType<typeof listCompaniesApiCompaniesGet>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCompaniesApiCompaniesGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCompaniesApiCompaniesGet>>,
+          TError,
+          Awaited<ReturnType<typeof listCompaniesApiCompaniesGet>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCompaniesApiCompaniesGet<TData = Awaited<ReturnType<typeof listCompaniesApiCompaniesGet>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCompaniesApiCompaniesGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCompaniesApiCompaniesGet>>,
+          TError,
+          Awaited<ReturnType<typeof listCompaniesApiCompaniesGet>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCompaniesApiCompaniesGet<TData = Awaited<ReturnType<typeof listCompaniesApiCompaniesGet>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCompaniesApiCompaniesGet>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List Companies
+ */
+
+export function useListCompaniesApiCompaniesGet<TData = Awaited<ReturnType<typeof listCompaniesApiCompaniesGet>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCompaniesApiCompaniesGet>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListCompaniesApiCompaniesGetQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+/**
+ * 企業URLを登録し、フルパイプライン（クロール→抽出→分析）を自動開始する。
+
+重複URLの場合は既存レコードを返却する（201ではなく200相当だが冪等性を優先）。
+ * @summary Register Company
+ */
+export const registerCompanyApiCompaniesPost = (
+    registerCompanyRequest: RegisterCompanyRequest,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<CompanyResponse>(
+      {url: `/api/companies`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: registerCompanyRequest, signal
+    },
+      );
+    }
+
+
+
+export const getRegisterCompanyApiCompaniesPostMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerCompanyApiCompaniesPost>>, TError,{data: RegisterCompanyRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof registerCompanyApiCompaniesPost>>, TError,{data: RegisterCompanyRequest}, TContext> => {
+
+const mutationKey = ['registerCompanyApiCompaniesPost'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof registerCompanyApiCompaniesPost>>, {data: RegisterCompanyRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  registerCompanyApiCompaniesPost(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RegisterCompanyApiCompaniesPostMutationResult = NonNullable<Awaited<ReturnType<typeof registerCompanyApiCompaniesPost>>>
+    export type RegisterCompanyApiCompaniesPostMutationBody = RegisterCompanyRequest
+    export type RegisterCompanyApiCompaniesPostMutationError = HTTPValidationError
+
+    /**
+ * @summary Register Company
+ */
+export const useRegisterCompanyApiCompaniesPost = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerCompanyApiCompaniesPost>>, TError,{data: RegisterCompanyRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof registerCompanyApiCompaniesPost>>,
+        TError,
+        {data: RegisterCompanyRequest},
+        TContext
+      > => {
+      return useMutation(getRegisterCompanyApiCompaniesPostMutationOptions(options), queryClient);
+    }
+    /**
+ * 企業詳細を返却する。最新分析結果と直近の実行履歴を含む。
+ * @summary Get Company
+ */
+export const getCompanyApiCompaniesCompanyIdGet = (
+    companyId: string,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<CompanyDetailResponse>(
+      {url: `/api/companies/${companyId}`, method: 'GET', signal
+    },
+      );
+    }
+
+
+
+
+export const getGetCompanyApiCompaniesCompanyIdGetQueryKey = (companyId: string,) => {
+    return [
+    `/api/companies/${companyId}`
+    ] as const;
+    }
+
+
+export const getGetCompanyApiCompaniesCompanyIdGetQueryOptions = <TData = Awaited<ReturnType<typeof getCompanyApiCompaniesCompanyIdGet>>, TError = HTTPValidationError>(companyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCompanyApiCompaniesCompanyIdGet>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCompanyApiCompaniesCompanyIdGetQueryKey(companyId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCompanyApiCompaniesCompanyIdGet>>> = ({ signal }) => getCompanyApiCompaniesCompanyIdGet(companyId, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(companyId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCompanyApiCompaniesCompanyIdGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetCompanyApiCompaniesCompanyIdGetQueryResult = NonNullable<Awaited<ReturnType<typeof getCompanyApiCompaniesCompanyIdGet>>>
+export type GetCompanyApiCompaniesCompanyIdGetQueryError = HTTPValidationError
+
+
+export function useGetCompanyApiCompaniesCompanyIdGet<TData = Awaited<ReturnType<typeof getCompanyApiCompaniesCompanyIdGet>>, TError = HTTPValidationError>(
+ companyId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCompanyApiCompaniesCompanyIdGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCompanyApiCompaniesCompanyIdGet>>,
+          TError,
+          Awaited<ReturnType<typeof getCompanyApiCompaniesCompanyIdGet>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCompanyApiCompaniesCompanyIdGet<TData = Awaited<ReturnType<typeof getCompanyApiCompaniesCompanyIdGet>>, TError = HTTPValidationError>(
+ companyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCompanyApiCompaniesCompanyIdGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCompanyApiCompaniesCompanyIdGet>>,
+          TError,
+          Awaited<ReturnType<typeof getCompanyApiCompaniesCompanyIdGet>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCompanyApiCompaniesCompanyIdGet<TData = Awaited<ReturnType<typeof getCompanyApiCompaniesCompanyIdGet>>, TError = HTTPValidationError>(
+ companyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCompanyApiCompaniesCompanyIdGet>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get Company
+ */
+
+export function useGetCompanyApiCompaniesCompanyIdGet<TData = Awaited<ReturnType<typeof getCompanyApiCompaniesCompanyIdGet>>, TError = HTTPValidationError>(
+ companyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCompanyApiCompaniesCompanyIdGet>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetCompanyApiCompaniesCompanyIdGetQueryOptions(companyId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+/**
+ * 指定企業のクロールジョブ（フルパイプライン）を開始する。
+ * @summary Start Crawl
+ */
+export const startCrawlApiCompaniesCompanyIdCrawlPost = (
+    companyId: string,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<RunStatusResponse>(
+      {url: `/api/companies/${companyId}/crawl`, method: 'POST', signal
+    },
+      );
+    }
+
+
+
+export const getStartCrawlApiCompaniesCompanyIdCrawlPostMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startCrawlApiCompaniesCompanyIdCrawlPost>>, TError,{companyId: string}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof startCrawlApiCompaniesCompanyIdCrawlPost>>, TError,{companyId: string}, TContext> => {
+
+const mutationKey = ['startCrawlApiCompaniesCompanyIdCrawlPost'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startCrawlApiCompaniesCompanyIdCrawlPost>>, {companyId: string}> = (props) => {
+          const {companyId} = props ?? {};
+
+          return  startCrawlApiCompaniesCompanyIdCrawlPost(companyId,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartCrawlApiCompaniesCompanyIdCrawlPostMutationResult = NonNullable<Awaited<ReturnType<typeof startCrawlApiCompaniesCompanyIdCrawlPost>>>
+
+    export type StartCrawlApiCompaniesCompanyIdCrawlPostMutationError = HTTPValidationError
+
+    /**
+ * @summary Start Crawl
+ */
+export const useStartCrawlApiCompaniesCompanyIdCrawlPost = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startCrawlApiCompaniesCompanyIdCrawlPost>>, TError,{companyId: string}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof startCrawlApiCompaniesCompanyIdCrawlPost>>,
+        TError,
+        {companyId: string},
+        TContext
+      > => {
+      return useMutation(getStartCrawlApiCompaniesCompanyIdCrawlPostMutationOptions(options), queryClient);
+    }
+    /**
+ * 分析ジョブを開始する。
+
+- force_refresh=true: フルパイプライン（再クロール→抽出→分析）
+- force_refresh=false かつ蓄積データあり: Deep Analysis（テンプレート別再分析）
+- force_refresh=false かつ蓄積データなし: フルパイプライン
+ * @summary Start Analysis
+ */
+export const startAnalysisApiCompaniesCompanyIdAnalysisRunsPost = (
+    companyId: string,
+    startAnalysisRequest: StartAnalysisRequest,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<RunStatusResponse>(
+      {url: `/api/companies/${companyId}/analysis-runs`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: startAnalysisRequest, signal
+    },
+      );
+    }
+
+
+
+export const getStartAnalysisApiCompaniesCompanyIdAnalysisRunsPostMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startAnalysisApiCompaniesCompanyIdAnalysisRunsPost>>, TError,{companyId: string;data: StartAnalysisRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof startAnalysisApiCompaniesCompanyIdAnalysisRunsPost>>, TError,{companyId: string;data: StartAnalysisRequest}, TContext> => {
+
+const mutationKey = ['startAnalysisApiCompaniesCompanyIdAnalysisRunsPost'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startAnalysisApiCompaniesCompanyIdAnalysisRunsPost>>, {companyId: string;data: StartAnalysisRequest}> = (props) => {
+          const {companyId,data} = props ?? {};
+
+          return  startAnalysisApiCompaniesCompanyIdAnalysisRunsPost(companyId,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartAnalysisApiCompaniesCompanyIdAnalysisRunsPostMutationResult = NonNullable<Awaited<ReturnType<typeof startAnalysisApiCompaniesCompanyIdAnalysisRunsPost>>>
+    export type StartAnalysisApiCompaniesCompanyIdAnalysisRunsPostMutationBody = StartAnalysisRequest
+    export type StartAnalysisApiCompaniesCompanyIdAnalysisRunsPostMutationError = HTTPValidationError
+
+    /**
+ * @summary Start Analysis
+ */
+export const useStartAnalysisApiCompaniesCompanyIdAnalysisRunsPost = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startAnalysisApiCompaniesCompanyIdAnalysisRunsPost>>, TError,{companyId: string;data: StartAnalysisRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof startAnalysisApiCompaniesCompanyIdAnalysisRunsPost>>,
+        TError,
+        {companyId: string;data: StartAnalysisRequest},
+        TContext
+      > => {
+      return useMutation(getStartAnalysisApiCompaniesCompanyIdAnalysisRunsPostMutationOptions(options), queryClient);
+    }
+    /**
+ * 指定企業の最新分析結果を返却する。
+ * @summary Get Latest Result
+ */
+export const getLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGet = (
+    companyId: string,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<AnalysisResponse>(
+      {url: `/api/companies/${companyId}/analysis-results/latest`, method: 'GET', signal
+    },
+      );
+    }
+
+
+
+
+export const getGetLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGetQueryKey = (companyId: string,) => {
+    return [
+    `/api/companies/${companyId}/analysis-results/latest`
+    ] as const;
+    }
+
+
+export const getGetLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGetQueryOptions = <TData = Awaited<ReturnType<typeof getLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGet>>, TError = HTTPValidationError>(companyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGet>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGetQueryKey(companyId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGet>>> = ({ signal }) => getLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGet(companyId, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(companyId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGetQueryResult = NonNullable<Awaited<ReturnType<typeof getLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGet>>>
+export type GetLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGetQueryError = HTTPValidationError
+
+
+export function useGetLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGet<TData = Awaited<ReturnType<typeof getLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGet>>, TError = HTTPValidationError>(
+ companyId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGet>>,
+          TError,
+          Awaited<ReturnType<typeof getLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGet>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGet<TData = Awaited<ReturnType<typeof getLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGet>>, TError = HTTPValidationError>(
+ companyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGet>>,
+          TError,
+          Awaited<ReturnType<typeof getLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGet>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGet<TData = Awaited<ReturnType<typeof getLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGet>>, TError = HTTPValidationError>(
+ companyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGet>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get Latest Result
+ */
+
+export function useGetLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGet<TData = Awaited<ReturnType<typeof getLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGet>>, TError = HTTPValidationError>(
+ companyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGet>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetLatestResultApiCompaniesCompanyIdAnalysisResultsLatestGetQueryOptions(companyId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+/**
+ * 指定企業の分析結果履歴を返却する。
+ * @summary List Results
+ */
+export const listResultsApiCompaniesCompanyIdAnalysisResultsGet = (
+    companyId: string,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<AnalysisHistoryResponse>(
+      {url: `/api/companies/${companyId}/analysis-results`, method: 'GET', signal
+    },
+      );
+    }
+
+
+
+
+export const getListResultsApiCompaniesCompanyIdAnalysisResultsGetQueryKey = (companyId: string,) => {
+    return [
+    `/api/companies/${companyId}/analysis-results`
+    ] as const;
+    }
+
+
+export const getListResultsApiCompaniesCompanyIdAnalysisResultsGetQueryOptions = <TData = Awaited<ReturnType<typeof listResultsApiCompaniesCompanyIdAnalysisResultsGet>>, TError = HTTPValidationError>(companyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listResultsApiCompaniesCompanyIdAnalysisResultsGet>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListResultsApiCompaniesCompanyIdAnalysisResultsGetQueryKey(companyId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listResultsApiCompaniesCompanyIdAnalysisResultsGet>>> = ({ signal }) => listResultsApiCompaniesCompanyIdAnalysisResultsGet(companyId, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(companyId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listResultsApiCompaniesCompanyIdAnalysisResultsGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListResultsApiCompaniesCompanyIdAnalysisResultsGetQueryResult = NonNullable<Awaited<ReturnType<typeof listResultsApiCompaniesCompanyIdAnalysisResultsGet>>>
+export type ListResultsApiCompaniesCompanyIdAnalysisResultsGetQueryError = HTTPValidationError
+
+
+export function useListResultsApiCompaniesCompanyIdAnalysisResultsGet<TData = Awaited<ReturnType<typeof listResultsApiCompaniesCompanyIdAnalysisResultsGet>>, TError = HTTPValidationError>(
+ companyId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listResultsApiCompaniesCompanyIdAnalysisResultsGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listResultsApiCompaniesCompanyIdAnalysisResultsGet>>,
+          TError,
+          Awaited<ReturnType<typeof listResultsApiCompaniesCompanyIdAnalysisResultsGet>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListResultsApiCompaniesCompanyIdAnalysisResultsGet<TData = Awaited<ReturnType<typeof listResultsApiCompaniesCompanyIdAnalysisResultsGet>>, TError = HTTPValidationError>(
+ companyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listResultsApiCompaniesCompanyIdAnalysisResultsGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listResultsApiCompaniesCompanyIdAnalysisResultsGet>>,
+          TError,
+          Awaited<ReturnType<typeof listResultsApiCompaniesCompanyIdAnalysisResultsGet>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListResultsApiCompaniesCompanyIdAnalysisResultsGet<TData = Awaited<ReturnType<typeof listResultsApiCompaniesCompanyIdAnalysisResultsGet>>, TError = HTTPValidationError>(
+ companyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listResultsApiCompaniesCompanyIdAnalysisResultsGet>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List Results
+ */
+
+export function useListResultsApiCompaniesCompanyIdAnalysisResultsGet<TData = Awaited<ReturnType<typeof listResultsApiCompaniesCompanyIdAnalysisResultsGet>>, TError = HTTPValidationError>(
+ companyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listResultsApiCompaniesCompanyIdAnalysisResultsGet>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListResultsApiCompaniesCompanyIdAnalysisResultsGetQueryOptions(companyId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
