@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+
 from agents import Agent, ModelSettings, Runner
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -34,7 +35,9 @@ async def ask_deep_research(
         result = await result_repo.find_latest_by_company(company_id)
 
     if not result:
-        raise AnalysisError("分析結果が見つかりません。先に企業分析を実行してください。")
+        raise AnalysisError(
+            "分析結果が見つかりません。先に企業分析を実行してください。"
+        )
 
     structured = StructuredData.model_validate(result.structured)
     summary = SummaryData.model_validate(result.summary)
@@ -61,8 +64,11 @@ async def ask_deep_research(
 
     # メッセージ数取得
     from sqlalchemy import func, select
+
     count_res = await db.execute(
-        select(func.count()).where(DeepResearchMessage.session_id == dr_session.session_id)
+        select(func.count()).where(
+            DeepResearchMessage.session_id == dr_session.session_id
+        )
     )
     msg_count = count_res.scalar() or 0
 

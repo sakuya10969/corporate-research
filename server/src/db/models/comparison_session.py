@@ -32,12 +32,16 @@ class ComparisonSession(Base):
     )
 
     template: Mapped[str] = mapped_column(Text, nullable=False, default="general")
-    comparison_summary: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    comparison_summary: Mapped[dict] = mapped_column(
+        JSONB, nullable=False, default=dict
+    )
     llm_model: Mapped[str | None] = mapped_column(Text, nullable=True)
     processing_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     share_id: Mapped[str | None] = mapped_column(Text, nullable=True, unique=True)
-    shared_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    shared_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()

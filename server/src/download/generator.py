@@ -40,7 +40,9 @@ def _build_html(result: AnalysisResult, company_name: str) -> str:
 
 def generate_pdf(result: AnalysisResult) -> bytes:
     """WeasyPrint で PDF バイト列を生成する"""
-    company_name = (result.structured or {}).get("company_profile", {}).get("name", "企業")
+    company_name = (
+        (result.structured or {}).get("company_profile", {}).get("name", "企業")
+    )
     html = _build_html(result, company_name)
     pdf_bytes = HTML(string=html).write_pdf()
     return pdf_bytes
@@ -53,7 +55,11 @@ def generate_docx(result: AnalysisResult) -> bytes:
     summary = result.summary or {}
     profile = structured.get("company_profile", {})
     company_name = profile.get("name", "企業分析レポート")
-    analyzed_at = result.created_at.strftime("%Y-%m-%d") if result.created_at else date.today().isoformat()
+    analyzed_at = (
+        result.created_at.strftime("%Y-%m-%d")
+        if result.created_at
+        else date.today().isoformat()
+    )
 
     # タイトル
     doc.add_heading(f"{company_name} 企業分析レポート", 0)
@@ -67,7 +73,14 @@ def generate_docx(result: AnalysisResult) -> bytes:
         hdr = table.rows[0].cells
         hdr[0].text = "項目"
         hdr[1].text = "内容"
-        for label, key in [("社名", "name"), ("設立", "founded"), ("代表者", "ceo"), ("所在地", "location"), ("従業員数", "employees"), ("資本金", "capital")]:
+        for label, key in [
+            ("社名", "name"),
+            ("設立", "founded"),
+            ("代表者", "ceo"),
+            ("所在地", "location"),
+            ("従業員数", "employees"),
+            ("資本金", "capital"),
+        ]:
             val = profile.get(key, "")
             if val:
                 row = table.add_row().cells
@@ -100,14 +113,21 @@ def generate_docx(result: AnalysisResult) -> bytes:
 
     # 財務情報
     fin = structured.get("financials", {})
-    if any(fin.get(k) for k in ("revenue", "operating_income", "net_income", "growth_rate")):
+    if any(
+        fin.get(k) for k in ("revenue", "operating_income", "net_income", "growth_rate")
+    ):
         doc.add_heading("財務情報", 1)
         table = doc.add_table(rows=1, cols=2)
         table.style = "Table Grid"
         hdr = table.rows[0].cells
         hdr[0].text = "項目"
         hdr[1].text = "値"
-        for label, key in [("売上高", "revenue"), ("営業利益", "operating_income"), ("純利益", "net_income"), ("成長率", "growth_rate")]:
+        for label, key in [
+            ("売上高", "revenue"),
+            ("営業利益", "operating_income"),
+            ("純利益", "net_income"),
+            ("成長率", "growth_rate"),
+        ]:
             if fin.get(key):
                 row = table.add_row().cells
                 row[0].text = label
@@ -117,7 +137,12 @@ def generate_docx(result: AnalysisResult) -> bytes:
     swot = summary.get("swot", {})
     if swot:
         doc.add_heading("SWOT分析", 1)
-        for label, key in [("強み", "strengths"), ("弱み", "weaknesses"), ("機会", "opportunities"), ("脅威", "threats")]:
+        for label, key in [
+            ("強み", "strengths"),
+            ("弱み", "weaknesses"),
+            ("機会", "opportunities"),
+            ("脅威", "threats"),
+        ]:
             items = swot.get(key, [])
             if items:
                 doc.add_heading(label, 2)
@@ -160,7 +185,9 @@ def generate_docx(result: AnalysisResult) -> bytes:
     if sources:
         doc.add_heading("参照ソース", 1)
         for s in sources:
-            title = s.get("title", "") if isinstance(s, dict) else getattr(s, "title", "")
+            title = (
+                s.get("title", "") if isinstance(s, dict) else getattr(s, "title", "")
+            )
             url = s.get("url", "") if isinstance(s, dict) else getattr(s, "url", "")
             doc.add_paragraph(f"{title}: {url}", style="List Bullet")
 

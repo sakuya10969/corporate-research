@@ -20,7 +20,9 @@ class AnalysisResultRepository:
         await self._s.flush()
         return result
 
-    async def find_latest_by_company(self, company_id: uuid.UUID) -> AnalysisResult | None:
+    async def find_latest_by_company(
+        self, company_id: uuid.UUID
+    ) -> AnalysisResult | None:
         res = await self._s.execute(
             select(AnalysisResult)
             .options(selectinload(AnalysisResult.company))

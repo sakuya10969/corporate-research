@@ -14,11 +14,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.analysis.llm import generate_summary_and_scores as _generate_summary_and_scores
 from src.analysis.schemas import (
     SourceInfo,
     StructuredData,
 )
-from src.analysis.service import _generate_summary_and_scores
 from src.db.models import AnalysisResult as AnalysisResultModel
 from src.db.models import AnalysisRun, Page, PageVersion
 from src.db.repository import (

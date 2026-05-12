@@ -71,8 +71,12 @@ class AnalysisResult(Base):
         onupdate=func.now(),
     )
 
-    company: Mapped["Company"] = relationship("Company", back_populates="analysis_results")
-    run: Mapped["AnalysisRun | None"] = relationship("AnalysisRun", back_populates="result")
+    company: Mapped["Company"] = relationship(
+        "Company", back_populates="analysis_results"
+    )
+    run: Mapped["AnalysisRun | None"] = relationship(
+        "AnalysisRun", back_populates="result"
+    )
     source_links: Mapped[list["AnalysisResultSource"]] = relationship(
         "AnalysisResultSource", back_populates="result", cascade="all, delete-orphan"
     )

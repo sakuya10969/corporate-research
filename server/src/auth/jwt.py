@@ -7,7 +7,6 @@ from jose import JWTError, jwt
 
 from src.shared.config import get_settings
 
-
 # JWKS キャッシュ（TTL: 3600秒）
 _jwks_cache: dict = {}
 _jwks_fetched_at: float = 0.0

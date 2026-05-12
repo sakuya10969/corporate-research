@@ -18,8 +18,8 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.analysis.analysis_service import AnalysisService
+from src.analysis.converters import model_to_response as _model_to_response
 from src.analysis.schemas import AnalysisResponse, RunSummary
-from src.analysis.service import _model_to_response
 from src.companies.schemas import (
     AnalysisHistoryResponse,
     CompanyDetailResponse,
@@ -269,7 +269,9 @@ async def start_analysis(
         run_repo = AnalysisRunRepository(session)
         run = await run_repo.find_by_id(result.run_id)
         if run is None:
-            raise HTTPException(status_code=500, detail="分析ジョブの取得に失敗しました")
+            raise HTTPException(
+                status_code=500, detail="分析ジョブの取得に失敗しました"
+            )
 
         return RunStatusResponse(
             run_id=run.run_id,

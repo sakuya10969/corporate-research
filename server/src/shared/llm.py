@@ -1,4 +1,8 @@
-from agents import set_default_openai_api, set_default_openai_client, set_tracing_disabled
+from agents import (
+    set_default_openai_api,
+    set_default_openai_client,
+    set_tracing_disabled,
+)
 from openai import AsyncAzureOpenAI
 
 from src.shared.config import get_settings

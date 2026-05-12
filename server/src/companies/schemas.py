@@ -9,7 +9,6 @@ from pydantic import BaseModel, Field
 
 from src.analysis.schemas import AnalysisResponse, RunSummary
 
-
 # ---------------------------------------------------------------------------
 # リクエスト
 # ---------------------------------------------------------------------------
@@ -85,4 +84,3 @@ class RunStatusResponse(BaseModel):
 class AnalysisHistoryResponse(BaseModel):
     company_id: uuid.UUID
     results: list[AnalysisResponse]
-

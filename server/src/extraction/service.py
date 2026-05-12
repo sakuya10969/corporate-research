@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.analysis.service import _extract_structured
+from src.analysis.llm import extract_structured as _extract_structured
 from src.analysis.schemas import StructuredData
 from src.db.models import Page, PageVersion
 from src.db.repository import CompanyRepository

@@ -34,8 +34,11 @@ SessionDep = Annotated[AsyncSession, Depends(get_session)]
 # 分析（F-001/F-002/F-005）
 # ---------------------------------------------------------------------------
 
+
 @router.post("/analysis", response_model=AnalysisResponse, tags=["analysis"])
-async def post_analysis(request: AnalysisRequest, session: SessionDep) -> AnalysisResponse:
+async def post_analysis(
+    request: AnalysisRequest, session: SessionDep
+) -> AnalysisResponse:
     return await analyze_company(request, session)
 
 
@@ -43,19 +46,24 @@ async def post_analysis(request: AnalysisRequest, session: SessionDep) -> Analys
 # 分析結果取得（F-008）
 # ---------------------------------------------------------------------------
 
+
 @router.get("/analysis/{result_id}", response_model=AnalysisResponse, tags=["analysis"])
-async def get_analysis_result(result_id: uuid.UUID, session: SessionDep) -> AnalysisResponse:
+async def get_analysis_result(
+    result_id: uuid.UUID, session: SessionDep
+) -> AnalysisResponse:
     repo = AnalysisResultRepository(session)
     result = await repo.find_by_id(result_id)
     if not result:
         raise HTTPException(status_code=404, detail="分析結果が見つかりません")
-    from src.analysis.service import _model_to_response
+    from src.analysis.converters import model_to_response as _model_to_response
+
     return _model_to_response(result, is_cached=True)
 
 
 # ---------------------------------------------------------------------------
 # ダウンロード（F-009）
 # ---------------------------------------------------------------------------
+
 
 @router.get("/analysis/{result_id}/download", tags=["analysis"])
 async def download_analysis(
@@ -68,9 +76,16 @@ async def download_analysis(
     if not result:
         raise HTTPException(status_code=404, detail="分析結果が見つかりません")
 
-    company_name = (result.structured or {}).get("company_profile", {}).get("name", "企業")
+    company_name = (
+        (result.structured or {}).get("company_profile", {}).get("name", "企業")
+    )
     from datetime import date
-    date_str = result.created_at.strftime("%Y-%m-%d") if result.created_at else date.today().isoformat()
+
+    date_str = (
+        result.created_at.strftime("%Y-%m-%d")
+        if result.created_at
+        else date.today().isoformat()
+    )
     filename_base = f"{company_name}_{date_str}"
 
     if format == "pdf":
@@ -78,14 +93,18 @@ async def download_analysis(
         return Response(
             content=content,
             media_type="application/pdf",
-            headers={"Content-Disposition": f'attachment; filename="{filename_base}.pdf"'},
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename_base}.pdf"'
+            },
         )
     else:
         content = generate_docx(result)
         return Response(
             content=content,
             media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            headers={"Content-Disposition": f'attachment; filename="{filename_base}.docx"'},
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename_base}.docx"'
+            },
         )
 
 
@@ -93,8 +112,13 @@ async def download_analysis(
 # 分析履歴（F-008）
 # ---------------------------------------------------------------------------
 
-@router.get("/companies/{company_id}/runs", response_model=HistoryResponse, tags=["companies"])
-async def get_company_runs(company_id: uuid.UUID, session: SessionDep) -> HistoryResponse:
+
+@router.get(
+    "/companies/{company_id}/runs", response_model=HistoryResponse, tags=["companies"]
+)
+async def get_company_runs(
+    company_id: uuid.UUID, session: SessionDep
+) -> HistoryResponse:
     run_repo = AnalysisRunRepository(session)
     runs = await run_repo.list_by_company(company_id)
     return HistoryResponse(
@@ -120,6 +144,7 @@ async def get_company_runs(company_id: uuid.UUID, session: SessionDep) -> Histor
 # シェア（F-012）
 # ---------------------------------------------------------------------------
 
+
 @router.post("/analysis/{result_id}/share", tags=["share"])
 async def create_share(result_id: uuid.UUID, session: SessionDep) -> dict:
     repo = AnalysisResultRepository(session)
@@ -128,6 +153,7 @@ async def create_share(result_id: uuid.UUID, session: SessionDep) -> dict:
         raise HTTPException(status_code=404, detail="分析結果が見つかりません")
     if not result.share_id:
         from datetime import datetime, timezone
+
         result.share_id = str(result_id)[:8]
         result.shared_at = datetime.now(timezone.utc)
         await session.commit()
@@ -140,13 +166,15 @@ async def get_shared_result(share_id: str, session: SessionDep) -> AnalysisRespo
     result = await repo.find_by_share_id(share_id)
     if not result:
         raise HTTPException(status_code=404, detail="共有リンクが見つかりません")
-    from src.analysis.service import _model_to_response
+    from src.analysis.converters import model_to_response as _model_to_response
+
     return _model_to_response(result, is_cached=True)
 
 
 # ---------------------------------------------------------------------------
 # 深掘り分析（F-007）
 # ---------------------------------------------------------------------------
+
 
 @router.post("/companies/{company_id}/deep-research", tags=["companies"])
 async def post_deep_research(
@@ -168,16 +196,19 @@ async def post_deep_research(
 # 企業名検索（F-011）
 # ---------------------------------------------------------------------------
 
+
 @router.get("/search", response_model=SearchResponse, tags=["search"])
 async def search_company(q: Annotated[str, Query(min_length=1)]) -> SearchResponse:
     results = await search_company_url(q)
     from src.analysis.schemas import SearchResult
+
     return SearchResponse(results=[SearchResult(**r) for r in results])
 
 
 # ---------------------------------------------------------------------------
 # 複数企業比較（F-013）
 # ---------------------------------------------------------------------------
+
 
 @router.post("/compare", response_model=CompareResponse, tags=["compare"])
 async def post_compare(request: CompareRequest, session: SessionDep) -> CompareResponse:
@@ -187,6 +218,7 @@ async def post_compare(request: CompareRequest, session: SessionDep) -> CompareR
 # ---------------------------------------------------------------------------
 # ヘルスチェック
 # ---------------------------------------------------------------------------
+
 
 @router.get("/health", response_model=HealthResponse, tags=["health"])
 async def get_health() -> HealthResponse:

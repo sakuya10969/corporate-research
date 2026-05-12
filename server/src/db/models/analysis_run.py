@@ -45,7 +45,9 @@ class AnalysisRun(Base):
 
     force_refresh: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     input_params: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
-    collection_summary: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    collection_summary: Mapped[dict] = mapped_column(
+        JSONB, nullable=False, default=dict
+    )
 
     error_code: Mapped[str | None] = mapped_column(Text, nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)

@@ -8,7 +8,6 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-
 # ---------------------------------------------------------------------------
 # リクエスト
 # ---------------------------------------------------------------------------
@@ -22,9 +21,9 @@ class AnalysisRequest(BaseModel):
         description="分析対象の企業URL（例: https://www.toyota.co.jp/）",
     )
     force_refresh: bool = Field(False, description="キャッシュを無視して再分析する")
-    template: Literal["general", "job_hunting", "investment", "competitor", "partnership"] = Field(
-        "general", description="分析テンプレート"
-    )
+    template: Literal[
+        "general", "job_hunting", "investment", "competitor", "partnership"
+    ] = Field("general", description="分析テンプレート")
 
 
 # ---------------------------------------------------------------------------
@@ -170,7 +169,9 @@ class HistoryResponse(BaseModel):
 
 class CompareRequest(BaseModel):
     urls: list[str] = Field(..., min_length=2, max_length=3)
-    template: Literal["general", "job_hunting", "investment", "competitor", "partnership"] = "general"
+    template: Literal[
+        "general", "job_hunting", "investment", "competitor", "partnership"
+    ] = "general"
 
 
 class CompareResponse(BaseModel):

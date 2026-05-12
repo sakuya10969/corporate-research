@@ -112,7 +112,9 @@ class PageVersion(Base):
     extracted_text: Mapped[str] = mapped_column(Text, nullable=False)
     page_metadata: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
 
-    fetched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    fetched_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
     fetch_duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
